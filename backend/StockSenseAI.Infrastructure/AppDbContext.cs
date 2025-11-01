@@ -20,14 +20,14 @@ namespace StockSenseAI.Infrastructure
                 {
                     Id = 1,
                     Username = "admin",
-                    PasswordHash = BCrypt.HashPassword("admin123"), // ✅ Doğru kullanım
+                    PasswordHash = "$2a$11$N9qo8uLOickgx2ZMRZo5e.PY/f7u8o7F3N0YQzGpJ4o4n8iQ4nFZm",
                     Role = "Admin"
                 },
                 new User
                 {
                     Id = 2,
                     Username = "user",
-                    PasswordHash = BCrypt.HashPassword("user123"), // ✅ Doğru kullanım
+                    PasswordHash = "$2a$11$hD4C2oSP5y9X1R4zvYbI3OMHqV5YDhx8h8M5sL.8OznYhpRqwrhG2",
                     Role = "User"
                 }
             );
