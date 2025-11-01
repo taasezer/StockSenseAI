@@ -1,0 +1,12 @@
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.0.32526.336
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockSenseAI.Api", "StockSenseAI.Api\StockSenseAI.Api.csproj", "{A1B2C3D4-5678-90AB-CDEF-1234567890AB}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockSenseAI.Core", "StockSenseAI.Core\StockSenseAI.Core.csproj", "{B2C3D4E5-6789-01AB-CDEF-234567890ABC}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockSenseAI.Infrastructure", "StockSenseAI.Infrastructure\StockSenseAI.Infrastructure.csproj", "{C3D4E5F6-7890-12AB-DEFG-34567890ABCD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StockSenseAI.Services", "StockSenseAI.Services\StockSenseAI.Services.csproj", "{D4E5F6G7-8901-23AB-EFGH-4567890ABCDE}"
+EndProject

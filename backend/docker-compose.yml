@@ -1,0 +1,31 @@
+version: '3.8'
+services:
+  backend:
+    build: .
+    ports:
+      - "5000:80"
+    environment:
+      # Değişkenler artık .env dosyasından okunuyor
+      - ASPNETCORE_ENVIRONMENT=Production
+      - ConnectionStrings__DefaultConnection=${DB_CONNECTION_STRING}
+      - Jwt__Key=${JWT_KEY}
+      - Jwt__Issuer=${JWT_ISSUER}
+      - Jwt__Audience=${JWT_AUDIENCE}
+      - OpenAI__ApiKey=${OPENAI_KEY}
+    depends_on:
+      - db
+
+  db:
+    image: postgres:15
+    environment:
+      # Bu değişkenler de .env dosyasından okunuyor
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+volumes:
+  postgres_data:
