@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react'
 import { productHubConnection } from '@/services/api'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { getProducts } from '@/services/api'
-import { Button } from '@/components/ui/button'
+import  Button  from '@/components/ui/button'
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table'
 
 const Products = () => {
