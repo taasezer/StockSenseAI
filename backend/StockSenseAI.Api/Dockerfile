@@ -1,31 +1,24 @@
-# 1. Aşama: Build (Derleme)
+# 1. Aşama: Build
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Çözüm dosyasını kopyala
-COPY backend/StockSenseAI.sln .
-
-# Proje dosyalarını, .sln dosyasına göre doğru yollara kopyala
-# (Hata buradaydı: 'backend/' önekini hedeften kaldırdık)
+# Çözüm dosyasını ve projeleri kopyala
+COPY backend/StockSenseAI.sln ./
 COPY backend/StockSenseAI.Api/StockSenseAI.Api.csproj StockSenseAI.Api/
 COPY backend/StockSenseAI.Core/StockSenseAI.Core.csproj StockSenseAI.Core/
 COPY backend/StockSenseAI.Infrastructure/StockSenseAI.Infrastructure.csproj StockSenseAI.Infrastructure/
 COPY backend/StockSenseAI.Services/StockSenseAI.Services.csproj StockSenseAI.Services/
 
-# Şimdi .sln dosyası, projelerini doğru yolda bulabilir
+# Restore
 RUN dotnet restore StockSenseAI.sln
 
-# Kodun geri kalanını da doğru yollara kopyala
-# (Hata buradaydı: 'backend/' önekini hedeften kaldırdık)
-COPY backend/StockSenseAI.Api/ StockSenseAI.Api/
-COPY backend/StockSenseAI.Core/ StockSenseAI.Core/
-COPY backend/StockSenseAI.Infrastructure/ StockSenseAI.Infrastructure/
-COPY backend/StockSenseAI.Services/ StockSenseAI.Services/
+# Kodun geri kalanını kopyala
+COPY backend/ ./
 
-# Publish et (Yolunu da düzelttik)
-RUN dotnet publish "StockSenseAI.Api/StockSenseAI.Api.csproj" -c Release -o /app/publish
+# Build ve Publish
+RUN dotnet publish "StockSenseAI.Api/StockSenseAI.Api.csproj" -c Release -o /app/publish /p:UseAppHost=false
 
-# 2. Aşama: Final (Çalıştırma)
+# 2. Aşama: Final
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
