@@ -1,28 +1,32 @@
 # 1. Aşama: Build (Derleme)
-# Projenizin SDK sürümüne göre (8.0, 7.0 vb.) burayı güncelleyebilirsiniz
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Proje dosyalarını (.csproj) ve çözüm dosyasını (.sln) kopyala
+# Çözüm dosyasını kopyala
 COPY backend/StockSenseAI.sln .
-COPY backend/StockSenseAI.Api/StockSenseAI.Api.csproj backend/StockSenseAI.Api/
-COPY backend/StockSenseAI.Core/StockSenseAI.Core.csproj backend/StockSenseAI.Core/
-COPY backend/StockSenseAI.Infrastructure/StockSenseAI.Infrastructure.csproj backend/StockSenseAI.Infrastructure/
-COPY backend/StockSenseAI.Services/StockSenseAI.Services.csproj backend/StockSenseAI.Services/
 
-# Paketleri geri yükle
+# Proje dosyalarını, .sln dosyasına göre doğru yollara kopyala
+# (Hata buradaydı: 'backend/' önekini hedeften kaldırdık)
+COPY backend/StockSenseAI.Api/StockSenseAI.Api.csproj StockSenseAI.Api/
+COPY backend/StockSenseAI.Core/StockSenseAI.Core.csproj StockSenseAI.Core/
+COPY backend/StockSenseAI.Infrastructure/StockSenseAI.Infrastructure.csproj StockSenseAI.Infrastructure/
+COPY backend/StockSenseAI.Services/StockSenseAI.Services.csproj StockSenseAI.Services/
+
+# Şimdi .sln dosyası, projelerini doğru yolda bulabilir
 RUN dotnet restore StockSenseAI.sln
 
-# Projenin geri kalan tüm dosyalarını kopyala
-COPY backend/ .
+# Kodun geri kalanını da doğru yollara kopyala
+# (Hata buradaydı: 'backend/' önekini hedeften kaldırdık)
+COPY backend/StockSenseAI.Api/ StockSenseAI.Api/
+COPY backend/StockSenseAI.Core/ StockSenseAI.Core/
+COPY backend/StockSenseAI.Infrastructure/ StockSenseAI.Infrastructure/
+COPY backend/StockSenseAI.Services/ StockSenseAI.Services/
 
-# Projeyi publish (yayınla)
-RUN dotnet publish "backend/StockSenseAI.Api/StockSenseAI.Api.csproj" -c Release -o /app/publish
+# Publish et (Yolunu da düzelttik)
+RUN dotnet publish "StockSenseAI.Api/StockSenseAI.Api.csproj" -c Release -o /app/publish
 
 # 2. Aşama: Final (Çalıştırma)
 FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-
-# Render, PORT ortam değişkenini otomatik olarak sağlar
 ENTRYPOINT ["dotnet", "StockSenseAI.Api.dll"]
