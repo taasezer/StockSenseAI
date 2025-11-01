@@ -7,20 +7,16 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <!-- ORM ve veritabanı bağlantısı -->
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.0" />
-
-    <!-- Şifreleme için gerekli -->
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Core katmanına referans -->
     <ProjectReference Include="..\StockSenseAI.Core\StockSenseAI.Core.csproj" />
   </ItemGroup>
 
