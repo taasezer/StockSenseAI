@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using StockSenseAI.Api.Hubs;
+using StockSenseAI.Core.Interfaces;
 using StockSenseAI.Infrastructure;
 using StockSenseAI.Infrastructure.Repositories;
 using StockSenseAI.Services;
@@ -23,13 +24,27 @@ builder.Services.AddSwaggerGen(c => {
         BearerFormat = "JWT",
         Scheme = "bearer"
     });
+    c.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            Array.Empty<string>()
+        }
+    });
 });
 
 // Database
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Services
+// Services & Repositories
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IOpenAIService, OpenAIService>();
@@ -53,32 +68,49 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidAudience = builder.Configuration["Jwt:Audience"],
             IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]!))
         };
+        
+        // SignalR support
+        options.Events = new JwtBearerEvents
+        {
+            OnMessageReceived = context =>
+            {
+                var accessToken = context.Request.Query["access_token"];
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/productHub"))
+                {
+                    context.Token = accessToken;
+                }
+                return Task.CompletedTask;
+            }
+        };
     });
 
-// ---------------------------------
-// YENİ GÜVENLİ CORS AYARI
-// ---------------------------------
+// Authorization
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
+});
+
+// CORS Configuration
 builder.Services.AddCors(options => {
     options.AddPolicy("AllowVercelFrontend", policy => {
-        
-        // Bu "FRONTEND_URL" değişkenini Render'ın Environment sekmesinden ekleyeceğiz
         var frontendURL = builder.Configuration["FRONTEND_URL"];
         
         if (string.IsNullOrEmpty(frontendURL))
         {
-            // Eğer değişken bulunamazsa (örn: local development), esnek davran
-            policy.AllowAnyOrigin()
+            // Development: Allow any origin
+            policy.SetIsOriginAllowed(_ => true)
                   .AllowAnyMethod()
-                  .AllowAnyHeader();
+                  .AllowAnyHeader()
+                  .AllowCredentials();
         }
         else
         {
-            // Production ortamında (Render):
-            // Sadece Vercel adresinden gelen isteklere izin ver
+            // Production: Restrict to specific origin
             policy.WithOrigins(frontendURL) 
                   .AllowAnyMethod()
                   .AllowAnyHeader()
-                  .AllowCredentials(); // Auth ve SignalR için bu gerekli
+                  .AllowCredentials();
         }
     });
 });
@@ -92,12 +124,7 @@ if (app.Environment.IsDevelopment()) {
 }
 
 app.UseHttpsRedirection();
-
-// ---------------------------------
-// YENİ POLICY'Yİ UYGULA
-// ---------------------------------
-app.UseCors("AllowVercelFrontend"); // "AllowAll" yerine bunu kullan
-
+app.UseCors("AllowVercelFrontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseResponseCompression();
