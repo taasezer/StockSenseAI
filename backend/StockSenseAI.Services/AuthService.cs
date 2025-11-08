@@ -41,7 +41,7 @@ public class AuthService : IAuthService
             Role = "User"
         };
 
-        return await _userRepository.CreateUserAsync(user);
+        return await _userRepository.CreateAsync(user);
     }
 
     private string GenerateJwtToken(User user)

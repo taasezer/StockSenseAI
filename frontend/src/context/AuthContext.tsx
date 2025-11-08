@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login } from '@/services/api'
+import { login as apiLogin } from '@/services/api'
 
 type AuthContextType = {
   user: any
@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const login = async (username: string, password: string) => {
     try {
-      const response = await login(username, password)
+      const response = await apiLogin(username, password)
       localStorage.setItem('token', response.token)
       setToken(response.token)
       navigate('/')
