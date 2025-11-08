@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using StockSenseAI.Core.Entities;
 using StockSenseAI.Core.Interfaces;
+using System.Net.Http.Json;
 using System.Text.Json;
 
 namespace StockSenseAI.Services;
@@ -52,8 +53,8 @@ public class OpenAIService : IOpenAIService
             model = "gpt-4o",
             messages = new[]
             {
-                new { role = "system", content = "You are a sales prediction assistant." },
-                new { role = "user", content = $"Predict next month sales based on: {historyData}" }
+                new { role = "system", content = "You are a sales prediction assistant. Return only a number." },
+                new { role = "user", content = $"Based on this sales history: {historyData}, predict the next month's sales quantity as a single integer number only." }
             },
             temperature = 0.3,
             max_tokens = 10
@@ -70,6 +71,23 @@ public class OpenAIService : IOpenAIService
 
         response.EnsureSuccessStatusCode();
         var result = await response.Content.ReadFromJsonAsync<OpenAIResponse>();
-        return int.TryParse(result?.Choices.FirstOrDefault()?.Message.Content, out var prediction) ? prediction : 0;
+        var content = result?.Choices.FirstOrDefault()?.Message.Content?.Trim();
+        
+        return int.TryParse(content, out var prediction) ? prediction : 0;
     }
+}
+
+public class OpenAIResponse
+{
+    public List<Choice> Choices { get; set; } = new();
+}
+
+public class Choice
+{
+    public Message Message { get; set; } = new();
+}
+
+public class Message
+{
+    public string Content { get; set; } = string.Empty;
 }
