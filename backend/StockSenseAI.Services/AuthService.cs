@@ -41,6 +41,7 @@ public class AuthService : IAuthService
             Role = "User"
         };
 
+        // FIXED: Changed from CreateUserAsync to CreateAsync
         return await _userRepository.CreateAsync(user);
     }
 
@@ -56,6 +57,8 @@ public class AuthService : IAuthService
                 new Claim(ClaimTypes.Role, user.Role)
             }),
             Expires = DateTime.UtcNow.AddHours(1),
+            Issuer = _config["Jwt:Issuer"],
+            Audience = _config["Jwt:Audience"],
             SigningCredentials = new SigningCredentials(
                 new SymmetricSecurityKey(key),
                 SecurityAlgorithms.HmacSha256Signature)
