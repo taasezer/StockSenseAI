@@ -1,22 +1,37 @@
 import { useState } from 'react'
-import { useAuth } from '@/context/AuthContext'
+import { useNavigate, Link } from 'react-router-dom'
 import Button from '@/components/ui/button'
 import Input from '@/components/ui/input'
-import { Link } from 'react-router-dom'
+import { register } from '@/services/api'
 
 const Register = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [error, setError] = useState('')
-  const { login } = useAuth()
+  const [success, setSuccess] = useState(false)
+  const navigate = useNavigate()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError('')
+    
+    if (password !== confirmPassword) {
+      setError('Passwords do not match')
+      return
+    }
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters')
+      return
+    }
+
     try {
-      // Register logic would go here
-      await login(username, password)
-    } catch (error) {
-      setError('Registration failed. Please try again.')
+      await register(username, password)
+      setSuccess(true)
+      setTimeout(() => navigate('/login'), 2000)
+    } catch (error: any) {
+      setError(error.response?.data || 'Registration failed. Username may already exist.')
     }
   }
 
@@ -24,7 +39,8 @@ const Register = () => {
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
       <div className="bg-white p-8 rounded-lg shadow-md w-96">
         <h1 className="text-2xl font-bold mb-6 text-center">Register</h1>
-        {error && <div className="mb-4 text-red-500 text-center">{error}</div>}
+        {error && <div className="mb-4 p-3 text-red-500 bg-red-50 border border-red-200 rounded text-center">{error}</div>}
+        {success && <div className="mb-4 p-3 text-green-600 bg-green-50 border border-green-200 rounded text-center">Registration successful! Redirecting...</div>}
         <form onSubmit={handleSubmit}>
           <div className="mb-4">
             <label className="block text-gray-700 mb-2">Username</label>
@@ -32,21 +48,31 @@ const Register = () => {
               type="text"
               value={username}
               onChange={(e) => setUsername(e.target.value)}
-              className="w-full p-2 border rounded"
               required
+              minLength={3}
             />
           </div>
-          <div className="mb-6">
+          <div className="mb-4">
             <label className="block text-gray-700 mb-2">Password</label>
             <Input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              className="w-full p-2 border rounded"
               required
+              minLength={6}
             />
           </div>
-          <Button type="submit" className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700">
+          <div className="mb-6">
+            <label className="block text-gray-700 mb-2">Confirm Password</label>
+            <Input
+              type="password"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              minLength={6}
+            />
+          </div>
+          <Button type="submit" className="w-full" variant="primary">
             Register
           </Button>
         </form>
