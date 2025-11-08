@@ -2,17 +2,17 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy project files from backend folder
-COPY backend/StockSenseAI.Api/StockSenseAI.Api.csproj StockSenseAI.Api/
-COPY backend/StockSenseAI.Core/StockSenseAI.Core.csproj StockSenseAI.Core/
-COPY backend/StockSenseAI.Infrastructure/StockSenseAI.Infrastructure.csproj StockSenseAI.Infrastructure/
-COPY backend/StockSenseAI.Services/StockSenseAI.Services.csproj StockSenseAI.Services/
+# Copy project files (relative to backend folder)
+COPY StockSenseAI.Api/StockSenseAI.Api.csproj StockSenseAI.Api/
+COPY StockSenseAI.Core/StockSenseAI.Core.csproj StockSenseAI.Core/
+COPY StockSenseAI.Infrastructure/StockSenseAI.Infrastructure.csproj StockSenseAI.Infrastructure/
+COPY StockSenseAI.Services/StockSenseAI.Services.csproj StockSenseAI.Services/
 
 # Restore dependencies
 RUN dotnet restore StockSenseAI.Api/StockSenseAI.Api.csproj
 
-# Copy everything from backend
-COPY backend/ .
+# Copy all backend files
+COPY . .
 
 # Build and publish
 WORKDIR /src/StockSenseAI.Api
@@ -23,7 +23,7 @@ FROM mcr.microsoft.com/dotnet/aspnet:8.0
 WORKDIR /app
 COPY --from=build /app/publish .
 
-# Render uses PORT environment variable
+# Render PORT variable
 ENV ASPNETCORE_URLS=http://+:${PORT:-10000}
 EXPOSE 10000
 
