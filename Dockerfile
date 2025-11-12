@@ -2,21 +2,22 @@
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 WORKDIR /src
 
-# Copy project files from backend folder
+# Copy solution and project files
+COPY backend/StockSenseAI.sln .
 COPY backend/StockSenseAI.Api/StockSenseAI.Api.csproj StockSenseAI.Api/
 COPY backend/StockSenseAI.Core/StockSenseAI.Core.csproj StockSenseAI.Core/
 COPY backend/StockSenseAI.Infrastructure/StockSenseAI.Infrastructure.csproj StockSenseAI.Infrastructure/
 COPY backend/StockSenseAI.Services/StockSenseAI.Services.csproj StockSenseAI.Services/
 
 # Restore dependencies
-RUN dotnet restore StockSenseAI.Api/StockSenseAI.Api.csproj
+RUN dotnet restore StockSenseAI.sln
 
-# Copy everything from backend
+# Copy the rest of the backend source code
 COPY backend/ .
 
 # Build and publish
 WORKDIR /src/StockSenseAI.Api
-RUN dotnet publish -c Release -o /app/publish
+RUN dotnet publish -c Release -o /app/publish --no-restore
 
 # Runtime stage
 FROM mcr.microsoft.com/dotnet/aspnet:8.0
