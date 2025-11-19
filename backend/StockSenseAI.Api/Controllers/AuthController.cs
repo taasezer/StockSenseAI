@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using StockSenseAI.Core.DTOs;
+using StockSenseAI.Core.Interfaces;
 using StockSenseAI.Services;
 
 namespace StockSenseAI.Api.Controllers;
