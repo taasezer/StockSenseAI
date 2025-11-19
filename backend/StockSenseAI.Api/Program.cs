@@ -57,8 +57,7 @@ if (!string.IsNullOrEmpty(databaseUrl))
         Username = userInfo[0],
         Password = userInfo[1],
         Database = databaseUri.LocalPath.TrimStart('/'),
-        SslMode = Npgsql.SslMode.Require,
-        TrustServerCertificate = true
+        SslMode = Npgsql.SslMode.Require
     };
     
     connectionString = builderDb.ToString();

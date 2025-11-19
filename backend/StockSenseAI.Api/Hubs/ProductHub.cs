@@ -4,7 +4,7 @@ namespace StockSenseAI.Api.Hubs;
 
 public class ProductHub : Hub
 {
-    public async Task SendProductUpdate(dynamic product)
+    public async Task SendProductUpdate(object product)
     {
         await Clients.All.SendAsync("ReceiveProductUpdate", product);
     }
