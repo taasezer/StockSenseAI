@@ -1,18 +1,16 @@
-import { Routes, Route } from 'react-router-dom'
-import Dashboard from './pages/Dashboard'
-import Products from './pages/Products'
+import { Routes, Route, Navigate } from 'react-router-dom'
 import Login from './pages/Login'
-import Register from './pages/Register'
-import PrivateRoute from './components/PrivateRoute'
+import Dashboard from './pages/Dashboard'
 
-const App = () => {
+function App() {
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/" element={<PrivateRoute><Dashboard /></PrivateRoute>} />
-      <Route path="/products" element={<PrivateRoute><Products /></PrivateRoute>} />
-    </Routes>
+    <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/" element={<Navigate to="/login" replace />} />
+      </Routes>
+    </div>
   )
 }
 
