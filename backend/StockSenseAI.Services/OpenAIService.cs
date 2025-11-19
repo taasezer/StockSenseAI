@@ -1,6 +1,7 @@
 using Microsoft.Extensions.Configuration;
 using StockSenseAI.Core.Entities;
 using StockSenseAI.Core.Interfaces;
+using System.Net.Http;
 using System.Net.Http.Json;
 using System.Text.Json;
 
@@ -9,12 +10,12 @@ namespace StockSenseAI.Services;
 public class OpenAIService : IOpenAIService
 {
     private readonly IConfiguration _config;
-    private readonly HttpClient _httpClient;
+    private readonly IHttpClientFactory _httpClientFactory;
 
-    public OpenAIService(IConfiguration config)
+    public OpenAIService(IConfiguration config, IHttpClientFactory httpClientFactory)
     {
         _config = config;
-        _httpClient = new HttpClient();
+        _httpClientFactory = httpClientFactory;
     }
 
     public async Task<string> GenerateProductDescription(string productName, string category)
@@ -31,10 +32,11 @@ public class OpenAIService : IOpenAIService
             max_tokens = 200
         };
 
-        _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+        var client = _httpClientFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
             "Bearer", _config["OpenAI:ApiKey"]);
 
-        var response = await _httpClient.PostAsJsonAsync(
+        var response = await client.PostAsJsonAsync(
             "https://api.openai.com/v1/chat/completions",
             request,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
@@ -60,10 +62,11 @@ public class OpenAIService : IOpenAIService
             max_tokens = 10
         };
 
-        _httpClient.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
+        var client = _httpClientFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new System.Net.Http.Headers.AuthenticationHeaderValue(
             "Bearer", _config["OpenAI:ApiKey"]);
 
-        var response = await _httpClient.PostAsJsonAsync(
+        var response = await client.PostAsJsonAsync(
             "https://api.openai.com/v1/chat/completions",
             request,
             new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
@@ -77,17 +80,4 @@ public class OpenAIService : IOpenAIService
     }
 }
 
-public class OpenAIResponse
-{
-    public List<Choice> Choices { get; set; } = new();
-}
 
-public class Choice
-{
-    public Message Message { get; set; } = new();
-}
-
-public class Message
-{
-    public string Content { get; set; } = string.Empty;
-}

@@ -1,0 +1,35 @@
+services:
+  # Backend Web Service
+  - type: web
+    name: stocksenseai-backend
+    env: docker
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    region: frankfurt # EU region - değiştirebilirsiniz
+    plan: free # veya starter
+    healthCheckPath: /health
+    envVars:
+      - key: ASPNETCORE_ENVIRONMENT
+        value: Production
+      - key: Jwt__Issuer
+        value: StockSenseAI
+      - key: Jwt__Audience
+        value: StockSenseAI
+      - key: Jwt__Key
+        generateValue: true # Otomatik secret oluşturur
+      - key: DATABASE_URL
+        fromDatabase:
+          name: stocksenseai-db
+          property: connectionString
+      - key: OpenAI__ApiKey
+        sync: false # Manuel olarak Render dashboard'dan eklenecek
+      - key: FRONTEND_URL
+        sync: false # Manuel olarak Render dashboard'dan eklenecek
+
+  # PostgreSQL Database
+  - type: pserv
+    name: stocksenseai-db
+    env: docker
+    region: frankfurt
+    plan: free
+    ipAllowList: [] # Tüm IP'lere izin ver (güvenlik için sınırlandırabilirsiniz)
