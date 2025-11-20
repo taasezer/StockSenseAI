@@ -14,16 +14,29 @@ const Login = () => {
     setLoading(true)
 
     try {
-      // Simple validation
-      if (username && password) {
-        // Store token (for demo, just use username)
-        localStorage.setItem('token', 'demo-token-' + username)
-        navigate('/dashboard')
-      } else {
-        setError('Please enter username and password')
+      // Call backend API
+      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/login`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username, password }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Login failed' }))
+        throw new Error(errorData.message || 'Login failed')
       }
-    } catch (err) {
-      setError('Login failed')
+
+      const data = await response.json()
+
+      // Store the JWT token
+      localStorage.setItem('token', data.token)
+
+      // Navigate to dashboard
+      navigate('/dashboard')
+    } catch (err: any) {
+      setError(err.message || 'Login failed. Please check your credentials.')
     } finally {
       setLoading(false)
     }
@@ -148,7 +161,7 @@ const Login = () => {
           fontSize: '14px',
           color: '#666'
         }}>
-          Demo: Use any username and password
+          Don't have an account? <a href="/register" style={{ color: '#4F46E5', textDecoration: 'none' }}>Register here</a>
         </div>
       </div>
     </div>

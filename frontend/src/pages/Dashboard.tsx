@@ -1,15 +1,51 @@
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { getProducts } from '@/services/api'
 
 const Dashboard = () => {
   const navigate = useNavigate()
+  const [stats, setStats] = useState({
+    totalProducts: 0,
+    loading: true,
+    error: null as string | null
+  })
 
   useEffect(() => {
     // Check if logged in
     const token = localStorage.getItem('token')
     if (!token) {
       navigate('/login')
+      return
     }
+
+    // Fetch real data from backend
+    const fetchDashboardData = async () => {
+      try {
+        const products = await getProducts()
+        setStats({
+          totalProducts: products?.length || 0,
+          loading: false,
+          error: null
+        })
+      } catch (error: any) {
+        const errorMessage = error.response?.status === 401
+          ? 'Session expired. Please login again.'
+          : 'Failed to load dashboard data'
+
+        setStats({
+          totalProducts: 0,
+          loading: false,
+          error: errorMessage
+        })
+
+        if (error.response?.status === 401) {
+          localStorage.removeItem('token')
+          setTimeout(() => navigate('/login'), 2000)
+        }
+      }
+    }
+
+    fetchDashboardData()
   }, [navigate])
 
   const handleLogout = () => {
@@ -76,8 +112,36 @@ const Dashboard = () => {
             lineHeight: '1.6',
             marginBottom: '24px'
           }}>
-            Your intelligent stock management system is up and running!
+            Your intelligent stock management system powered by AI
           </p>
+
+          {stats.loading && (
+            <div style={{
+              padding: '16px',
+              backgroundColor: '#dbeafe',
+              border: '1px solid #93c5fd',
+              borderRadius: '6px',
+              marginBottom: '16px'
+            }}>
+              <p style={{ color: '#1e40af', fontSize: '14px', margin: 0 }}>
+                Loading dashboard data...
+              </p>
+            </div>
+          )}
+
+          {stats.error && (
+            <div style={{
+              padding: '16px',
+              backgroundColor: '#fee2e2',
+              border: '1px solid #fecaca',
+              borderRadius: '6px',
+              marginBottom: '16px'
+            }}>
+              <p style={{ color: '#991b1b', fontSize: '14px', margin: 0 }}>
+                <strong>⚠ Error:</strong> {stats.error}
+              </p>
+            </div>
+          )}
 
           <div style={{
             display: 'grid',
@@ -100,9 +164,27 @@ const Dashboard = () => {
               }}>
                 Products
               </h3>
-              <p style={{ color: '#666', fontSize: '14px' }}>
-                Manage your product inventory
+              <p style={{ color: '#111', fontSize: '32px', fontWeight: 'bold', marginBottom: '8px' }}>
+                {stats.loading ? '...' : stats.totalProducts}
               </p>
+              <p style={{ color: '#666', fontSize: '14px' }}>
+                Total products in inventory
+              </p>
+              <button
+                onClick={() => navigate('/products')}
+                style={{
+                  marginTop: '12px',
+                  padding: '8px 16px',
+                  backgroundColor: '#4F46E5',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '4px',
+                  cursor: 'pointer',
+                  fontSize: '14px'
+                }}
+              >
+                View Products
+              </button>
             </div>
 
             {/* Card 2 */}
@@ -121,7 +203,7 @@ const Dashboard = () => {
                 Analytics
               </h3>
               <p style={{ color: '#666', fontSize: '14px' }}>
-                View sales predictions and insights
+                View sales predictions and insights powered by AI
               </p>
             </div>
 
@@ -141,7 +223,7 @@ const Dashboard = () => {
                 AI Features
               </h3>
               <p style={{ color: '#666', fontSize: '14px' }}>
-                Powered by OpenAI technology
+                Powered by OpenAI technology for smart descriptions &amp; predictions
               </p>
             </div>
           </div>
@@ -149,17 +231,17 @@ const Dashboard = () => {
           <div style={{
             marginTop: '32px',
             padding: '16px',
-            backgroundColor: '#dbeafe',
-            border: '1px solid #93c5fd',
+            backgroundColor: '#d1fae5',
+            border: '1px solid #6ee7b7',
             borderRadius: '6px'
           }}>
             <p style={{
-              color: '#1e40af',
+              color: '#065f46',
               fontSize: '14px',
               margin: 0
             }}>
-              <strong>✓ Frontend is working correctly!</strong><br />
-              Backend integration coming soon...
+              <strong>✓ Backend connected successfully!</strong><br />
+              Frontend is now communicating with the .NET API
             </p>
           </div>
         </div>
