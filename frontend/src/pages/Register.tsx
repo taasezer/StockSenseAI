@@ -35,8 +35,11 @@ const Register = () => {
     }
 
     try {
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
+      console.log('Attempting to register at:', `${apiUrl}/api/auth/register`)
+
       // Call backend API
-      const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/auth/register`, {
+      const response = await fetch(`${apiUrl}/api/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -44,16 +47,36 @@ const Register = () => {
         body: JSON.stringify({ username, password }),
       })
 
+      console.log('Response status:', response.status)
+
       if (!response.ok) {
-        const errorData = await response.text().catch(() => 'Registration failed')
-        throw new Error(errorData || 'Registration failed')
+        const contentType = response.headers.get('content-type')
+        let errorMessage = 'Registration failed'
+
+        if (contentType && contentType.includes('application/json')) {
+          const errorData = await response.json()
+          errorMessage = errorData.message || errorData.title || 'Registration failed'
+        } else {
+          errorMessage = await response.text()
+        }
+
+        throw new Error(errorMessage)
       }
 
       // Success!
       setSuccess(true)
       setTimeout(() => navigate('/login'), 2000)
     } catch (err: any) {
-      setError(err.message || 'Registration failed. Username may already exist.')
+      console.error('Registration error:', err)
+
+      // Daha detaylı error mesajı
+      if (err.message === 'Failed to fetch') {
+        setError('Cannot connect to server. Please make sure backend is running on http://localhost:5000')
+      } else if (err.message.includes('NetworkError') || err.message.includes('CORS')) {
+        setError('Network error. Check CORS settings or backend connection.')
+      } else {
+        setError(err.message || 'Registration failed. Username may already exist.')
+      }
     } finally {
       setLoading(false)
     }
@@ -93,7 +116,8 @@ const Register = () => {
             border: '1px solid #fcc',
             borderRadius: '4px',
             color: '#c33',
-            textAlign: 'center'
+            fontSize: '13px',
+            lineHeight: '1.4'
           }}>
             {error}
           </div>
@@ -228,6 +252,19 @@ const Register = () => {
           <a href="/login" style={{ color: '#4F46E5', textDecoration: 'none', fontWeight: '500' }}>
             Login here
           </a>
+        </div>
+
+        {/* Debug info */}
+        <div style={{
+          marginTop: '20px',
+          padding: '12px',
+          backgroundColor: '#f9fafb',
+          border: '1px solid #e5e7eb',
+          borderRadius: '4px',
+          fontSize: '12px',
+          color: '#666'
+        }}>
+          <strong>Backend URL:</strong> {import.meta.env.VITE_API_URL || 'http://localhost:5000'}
         </div>
       </div>
     </div>
