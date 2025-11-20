@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getProducts } from '@/services/api'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -21,14 +20,27 @@ const Dashboard = () => {
     // Fetch real data from backend
     const fetchDashboardData = async () => {
       try {
-        const products = await getProducts()
+        const response = await fetch(`${import.meta.env.VITE_API_URL || 'http://localhost:5000'}/api/products`, {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        })
+
+        if (!response.ok) {
+          if (response.status === 401) {
+            throw new Error('Session expired')
+          }
+          throw new Error('Failed to fetch')
+        }
+
+        const products = await response.json()
         setStats({
           totalProducts: products?.length || 0,
           loading: false,
           error: null
         })
       } catch (error: any) {
-        const errorMessage = error.response?.status === 401
+        const errorMessage = error.message === 'Session expired'
           ? 'Session expired. Please login again.'
           : 'Failed to load dashboard data'
 
@@ -38,7 +50,7 @@ const Dashboard = () => {
           error: errorMessage
         })
 
-        if (error.response?.status === 401) {
+        if (error.message === 'Session expired') {
           localStorage.removeItem('token')
           setTimeout(() => navigate('/login'), 2000)
         }

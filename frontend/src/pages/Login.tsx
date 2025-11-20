@@ -30,8 +30,8 @@ const Login = () => {
 
       const data = await response.json()
 
-      // Store the JWT token
-      localStorage.setItem('token', data.token)
+      // Store the JWT token (Backend returns "Token" with capital T)
+      localStorage.setItem('token', data.Token)
 
       // Navigate to dashboard
       navigate('/dashboard')
