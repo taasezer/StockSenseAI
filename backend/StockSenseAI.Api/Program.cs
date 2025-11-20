@@ -66,6 +66,7 @@ if (!string.IsNullOrEmpty(databaseUrl))
 builder.Services.AddDbContext<AppDbContext>(options =>
     options.UseNpgsql(connectionString));
 
+
 // Services & Repositories
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
@@ -78,9 +79,29 @@ builder.Services.AddHealthChecks();
 builder.Services.AddExceptionHandler<StockSenseAI.Api.Middleware.GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
+// CORS - Allow both localhost (dev) and Vercel (production)
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowFrontends", policy =>
+    {
+        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
+        
+        // Always allow localhost for development
+        policy.WithOrigins(
+            "http://localhost:5173",
+            "http://localhost:3000",
+            frontendUrl ?? "https://stock-sense-ai-jfj2.vercel.app"
+        )
+        .AllowAnyMethod()
+        .AllowAnyHeader()
+        .AllowCredentials();
+    });
+});
+
 // SignalR
 builder.Services.AddSignalR();
 builder.Services.AddResponseCompression();
+
 
 // Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -121,29 +142,6 @@ builder.Services.AddAuthorization(options =>
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 
-// CORS Configuration
-builder.Services.AddCors(options => {
-    options.AddPolicy("AllowVercelFrontend", policy => {
-        var frontendURL = builder.Configuration["FRONTEND_URL"];
-        
-        if (string.IsNullOrEmpty(frontendURL))
-        {
-            // Development: Allow any origin
-            policy.SetIsOriginAllowed(_ => true)
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
-                  .AllowCredentials();
-        }
-        else
-        {
-            // Production: Restrict to specific origin
-            policy.WithOrigins(frontendURL) 
-                  .AllowAnyMethod()
-                  .AllowAnyHeader()
-                  .AllowCredentials();
-        }
-    });
-});
 
 var app = builder.Build();
 
@@ -172,7 +170,7 @@ if (app.Environment.IsDevelopment()) {
 }
 
 app.UseHttpsRedirection();
-app.UseCors("AllowVercelFrontend");
+app.UseCors("AllowFrontends");
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseResponseCompression();
