@@ -8,64 +8,22 @@ using StockSenseAI.Infrastructure;
 using StockSenseAI.Infrastructure.Repositories;
 using StockSenseAI.Services;
 using System.Text;
-using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Configure Kestrel to listen on port 5000
+builder.WebHost.UseUrls("http://localhost:5000");
 
 // Add services
 builder.Services.AddControllers();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(c => {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "StockSenseAI API", Version = "v1" });
-    c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme {
-        In = ParameterLocation.Header,
-        Description = "Enter JWT Token",
-        Name = "Authorization",
-        Type = SecuritySchemeType.Http,
-        BearerFormat = "JWT",
-        Scheme = "bearer"
-    });
-    c.AddSecurityRequirement(new OpenApiSecurityRequirement
-    {
-        {
-            new OpenApiSecurityScheme
-            {
-                Reference = new OpenApiReference
-                {
-                    Type = ReferenceType.SecurityScheme,
-                    Id = "Bearer"
-                }
-            },
-            Array.Empty<string>()
-        }
-    });
 });
 
-// Database
-var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
-var databaseUrl = Environment.GetEnvironmentVariable("DATABASE_URL");
-
-if (!string.IsNullOrEmpty(databaseUrl))
-{
-    var databaseUri = new Uri(databaseUrl);
-    var userInfo = databaseUri.UserInfo.Split(':');
-    
-    var builderDb = new Npgsql.NpgsqlConnectionStringBuilder
-    {
-        Host = databaseUri.Host,
-        Port = databaseUri.Port,
-        Username = userInfo[0],
-        Password = userInfo[1],
-        Database = databaseUri.LocalPath.TrimStart('/'),
-        SslMode = Npgsql.SslMode.Require
-    };
-    
-    connectionString = builderDb.ToString();
-}
-
+// Database - InMemory
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseNpgsql(connectionString));
-
+    options.UseInMemoryDatabase("StockSenseAI"));
 
 // Services & Repositories
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -75,41 +33,28 @@ builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddHttpClient();
-builder.Services.AddHealthChecks();
-builder.Services.AddExceptionHandler<StockSenseAI.Api.Middleware.GlobalExceptionHandler>();
-builder.Services.AddProblemDetails();
 
-// CORS - Allow both localhost (dev) and Vercel (production)
+// CORS - Allow all for development
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowFrontends", policy =>
+    options.AddPolicy("AllowAll", policy =>
     {
-        var frontendUrl = Environment.GetEnvironmentVariable("FRONTEND_URL");
-        
-        // Always allow localhost for development
-        policy.WithOrigins(
-            "http://localhost:5173",
-            "http://localhost:3000",
-            frontendUrl ?? "https://stock-sense-ai-jfj2.vercel.app"
-        )
-        .AllowAnyMethod()
-        .AllowAnyHeader()
-        .AllowCredentials();
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
     });
 });
 
 // SignalR
 builder.Services.AddSignalR();
-builder.Services.AddResponseCompression();
 
+// JWT Authentication - with defaults
+var jwtKey = "StockSenseAI-Super-Secret-Key-For-JWT-Min-32-Characters-Long!";
+var jwtIssuer = "StockSenseAI";
+var jwtAudience = "StockSenseAI";
 
-// Authentication
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => {
-        var jwtKey = builder.Configuration["Jwt:Key"] ?? Environment.GetEnvironmentVariable("Jwt__Key");
-        var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? Environment.GetEnvironmentVariable("Jwt__Issuer");
-        var jwtAudience = builder.Configuration["Jwt:Audience"] ?? Environment.GetEnvironmentVariable("Jwt__Audience");
-
         options.TokenValidationParameters = new TokenValidationParameters {
             ValidateIssuer = true,
             ValidateAudience = true,
@@ -117,7 +62,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
             ValidateIssuerSigningKey = true,
             ValidIssuer = jwtIssuer,
             ValidAudience = jwtAudience,
-            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey!))
+            IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtKey))
         };
         
         // SignalR support
@@ -136,46 +81,28 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
         };
     });
 
-// Authorization
 builder.Services.AddAuthorization(options =>
 {
     options.AddPolicy("AdminOnly", policy => policy.RequireRole("Admin"));
 });
 
-
 var app = builder.Build();
 
-// Auto-Migration
-using (var scope = app.Services.CreateScope())
+// Configure pipeline - SIMPLE
+app.UseCors("AllowAll");
+
+if (app.Environment.IsDevelopment()) 
 {
-    var services = scope.ServiceProvider;
-    try
-    {
-        var context = services.GetRequiredService<AppDbContext>();
-        context.Database.Migrate();
-    }
-    catch (Exception ex)
-    {
-        var logger = services.GetRequiredService<ILogger<Program>>();
-        logger.LogError(ex, "An error occurred while migrating the database.");
-    }
-}
-
-// Configure pipeline
-app.UseExceptionHandler(); // Use Global Exception Handler
-
-if (app.Environment.IsDevelopment()) {
     app.UseSwagger();
     app.UseSwaggerUI();
 }
 
-app.UseHttpsRedirection();
-app.UseCors("AllowFrontends");
 app.UseAuthentication();
 app.UseAuthorization();
-app.UseResponseCompression();
 app.MapControllers();
 app.MapHub<ProductHub>("/productHub");
-app.MapHealthChecks("/health"); // Health Check Endpoint
+
+Console.WriteLine("🚀 StockSenseAI API started on http://localhost:5000");
+Console.WriteLine("📖 Swagger UI: http://localhost:5000/swagger");
 
 app.Run();
