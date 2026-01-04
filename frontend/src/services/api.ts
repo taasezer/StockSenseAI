@@ -17,7 +17,7 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// SignalR connection
+// SignalR connection - lazy initialization
 export const productHubConnection = new signalR.HubConnectionBuilder()
   .withUrl(`${API_URL}/productHub`, {
     accessTokenFactory: () => localStorage.getItem('token') || ''
@@ -25,10 +25,34 @@ export const productHubConnection = new signalR.HubConnectionBuilder()
   .withAutomaticReconnect()
   .build()
 
-// Start connection
-productHubConnection.start()
-  .then(() => console.log('SignalR Connected'))
-  .catch(err => console.error('SignalR Connection Error:', err))
+// Flag to track connection status
+let isSignalRConnected = false
+
+// Start connection - call this after login
+export const startSignalRConnection = async () => {
+  if (isSignalRConnected) return
+
+  try {
+    await productHubConnection.start()
+    isSignalRConnected = true
+    console.log('SignalR Connected')
+  } catch (err) {
+    console.error('SignalR Connection Error:', err)
+  }
+}
+
+// Stop connection - call on logout
+export const stopSignalRConnection = async () => {
+  if (!isSignalRConnected) return
+
+  try {
+    await productHubConnection.stop()
+    isSignalRConnected = false
+    console.log('SignalR Disconnected')
+  } catch (err) {
+    console.error('SignalR Disconnect Error:', err)
+  }
+}
 
 // API functions
 export const getProducts = async () => {

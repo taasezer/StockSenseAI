@@ -34,14 +34,19 @@ builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddHttpClient();
 
-// CORS - Allow all for development
+// CORS - Configure for SignalR compatibility
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.AllowAnyOrigin()
+        policy.WithOrigins(
+                "http://localhost:5173",
+                "http://localhost:3000",
+                "http://127.0.0.1:5173",
+                "http://127.0.0.1:3000")
               .AllowAnyMethod()
-              .AllowAnyHeader();
+              .AllowAnyHeader()
+              .AllowCredentials();
     });
 });
 
@@ -101,6 +106,16 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ProductHub>("/productHub");
+
+// Health endpoint
+app.MapGet("/health", () => "Healthy");
+
+// Ensure database is created and seeded
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    db.Database.EnsureCreated();
+}
 
 Console.WriteLine("🚀 StockSenseAI API started on http://localhost:5000");
 Console.WriteLine("📖 Swagger UI: http://localhost:5000/swagger");

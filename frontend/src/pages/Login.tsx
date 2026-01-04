@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { startSignalRConnection } from '../services/api'
 
 const Login = () => {
   const [username, setUsername] = useState('')
@@ -30,8 +31,13 @@ const Login = () => {
 
       const data = await response.json()
 
-      // Store the JWT token (Backend returns "Token" with capital T)
-      localStorage.setItem('token', data.Token)
+      // Store the JWT token (handle both cases - backend may return "Token" or "token")
+      const token = data.token || data.Token
+      if (token) {
+        localStorage.setItem('token', token)
+        // Start SignalR connection after login
+        await startSignalRConnection()
+      }
 
       // Navigate to dashboard
       navigate('/dashboard')

@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { login as apiLogin } from '@/services/api'
+import { login as apiLogin, startSignalRConnection, stopSignalRConnection } from '@/services/api'
 
 type AuthContextType = {
   user: any
@@ -21,6 +21,8 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       try {
         const payload = JSON.parse(atob(token.split('.')[1]))
         setUser(payload)
+        // Connect SignalR when session is restored
+        startSignalRConnection()
       } catch (e) {
         console.error("Invalid token", e)
         localStorage.removeItem('token')
@@ -31,8 +33,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = async (username: string, password: string) => {
     const response = await apiLogin(username, password)
-    localStorage.setItem('token', response.token)
-    setToken(response.token)
+    // Handle both cases for token property name
+    const tokenValue = response.token || response.Token
+    localStorage.setItem('token', tokenValue)
+    setToken(tokenValue)
+    await startSignalRConnection()
     navigate('/')
   }
 
@@ -40,6 +45,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     localStorage.removeItem('token')
     setToken(null)
     setUser(null)
+    stopSignalRConnection()
     navigate('/login')
   }
 
@@ -57,3 +63,4 @@ export const useAuth = () => {
   }
   return context
 }
+
