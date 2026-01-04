@@ -87,7 +87,7 @@ const Dashboard = () => {
             </div>
           )}
 
-          <div className="grid grid-3" style={{ marginTop: 'var(--spacing-xl)' }}>
+          <div className="grid" style={{ marginTop: 'var(--spacing-xl)', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
             {/* Card 1 - Products */}
             <div className="stat-card" style={{ borderColor: 'var(--primary)' }}>
               <h3 className="stat-title" style={{ color: 'var(--primary)' }}>Products</h3>
@@ -131,6 +131,21 @@ const Dashboard = () => {
                 style={{ marginTop: 'var(--spacing-sm)' }}
               >
                 Manage Suppliers
+              </button>
+            </div>
+
+            {/* Card 4 - Reports */}
+            <div className="stat-card" style={{ borderColor: 'var(--warning)' }}>
+              <h3 className="stat-title" style={{ color: 'var(--warning)' }}>📊 Reports</h3>
+              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
+                Generate PDF reports for inventory and shipments
+              </p>
+              <button
+                onClick={() => navigate('/reports')}
+                className="btn btn-warning btn-sm"
+                style={{ marginTop: 'var(--spacing-sm)' }}
+              >
+                View Reports
               </button>
             </div>
           </div>

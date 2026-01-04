@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard'
 import Products from './pages/Products'
 import Alerts from './pages/Alerts'
 import Suppliers from './pages/Suppliers'
+import Reports from './pages/Reports'
 
 function App() {
   return (
@@ -16,6 +17,7 @@ function App() {
         <Route path="/products" element={<Products />} />
         <Route path="/alerts" element={<Alerts />} />
         <Route path="/suppliers" element={<Suppliers />} />
+        <Route path="/reports" element={<Reports />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </div>
@@ -23,5 +25,6 @@ function App() {
 }
 
 export default App
+
 
 

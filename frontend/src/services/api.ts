@@ -193,6 +193,44 @@ export const cancelShipment = async (id: number) => {
   return response.data
 }
 
+// Report API functions
+export const getReportSummary = async () => {
+  const response = await api.get('/reports/summary')
+  return response.data
+}
+
+export const downloadInventoryReport = async () => {
+  const response = await api.get('/reports/inventory/pdf', { responseType: 'blob' })
+  downloadBlob(response.data, `inventory-report-${new Date().toISOString().split('T')[0]}.pdf`)
+}
+
+export const downloadLowStockReport = async () => {
+  const response = await api.get('/reports/low-stock/pdf', { responseType: 'blob' })
+  downloadBlob(response.data, `low-stock-report-${new Date().toISOString().split('T')[0]}.pdf`)
+}
+
+export const downloadSupplierReport = async () => {
+  const response = await api.get('/reports/suppliers/pdf', { responseType: 'blob' })
+  downloadBlob(response.data, `supplier-report-${new Date().toISOString().split('T')[0]}.pdf`)
+}
+
+export const downloadShipmentReport = async () => {
+  const response = await api.get('/reports/shipments/pdf', { responseType: 'blob' })
+  downloadBlob(response.data, `shipment-report-${new Date().toISOString().split('T')[0]}.pdf`)
+}
+
+// Helper to trigger file download
+const downloadBlob = (blob: Blob, filename: string) => {
+  const url = window.URL.createObjectURL(blob)
+  const a = document.createElement('a')
+  a.href = url
+  a.download = filename
+  document.body.appendChild(a)
+  a.click()
+  window.URL.revokeObjectURL(url)
+  document.body.removeChild(a)
+}
+
 // SignalR event listeners
 productHubConnection.on("ReceiveProductUpdate", (product) => {
   console.log("Product updated:", product)
@@ -205,4 +243,5 @@ productHubConnection.on("ReceiveSalesPrediction", (productId, prediction) => {
 productHubConnection.on("ReceiveProductDeleted", (productId) => {
   console.log(`Product ${productId} deleted`)
 })
+
 
