@@ -4,6 +4,7 @@ import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Products from './pages/Products'
 import Alerts from './pages/Alerts'
+import Suppliers from './pages/Suppliers'
 
 function App() {
   return (
@@ -14,6 +15,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/products" element={<Products />} />
         <Route path="/alerts" element={<Alerts />} />
+        <Route path="/suppliers" element={<Suppliers />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </div>
@@ -21,4 +23,5 @@ function App() {
 }
 
 export default App
+
 

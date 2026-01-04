@@ -136,6 +136,63 @@ export const resolveAlert = async (id: number) => {
   return response.data
 }
 
+// Supplier API functions
+export const getSuppliers = async () => {
+  const response = await api.get('/suppliers')
+  return response.data
+}
+
+export const getSupplier = async (id: number) => {
+  const response = await api.get(`/suppliers/${id}`)
+  return response.data
+}
+
+export const createSupplier = async (supplier: any) => {
+  const response = await api.post('/suppliers', supplier)
+  return response.data
+}
+
+export const updateSupplier = async (id: number, supplier: any) => {
+  const response = await api.put(`/suppliers/${id}`, supplier)
+  return response.data
+}
+
+export const deleteSupplier = async (id: number) => {
+  const response = await api.delete(`/suppliers/${id}`)
+  return response.data
+}
+
+// Shipment API functions
+export const getShipments = async () => {
+  const response = await api.get('/shipments')
+  return response.data
+}
+
+export const getPendingShipments = async () => {
+  const response = await api.get('/shipments/pending')
+  return response.data
+}
+
+export const createShipment = async (shipment: any) => {
+  const response = await api.post('/shipments', shipment)
+  return response.data
+}
+
+export const updateShipmentStatus = async (id: number, status: string) => {
+  const response = await api.patch(`/shipments/${id}/status`, { status })
+  return response.data
+}
+
+export const markShipmentDelivered = async (id: number) => {
+  const response = await api.post(`/shipments/${id}/deliver`)
+  return response.data
+}
+
+export const cancelShipment = async (id: number) => {
+  const response = await api.post(`/shipments/${id}/cancel`)
+  return response.data
+}
+
 // SignalR event listeners
 productHubConnection.on("ReceiveProductUpdate", (product) => {
   console.log("Product updated:", product)
@@ -148,3 +205,4 @@ productHubConnection.on("ReceiveSalesPrediction", (productId, prediction) => {
 productHubConnection.on("ReceiveProductDeleted", (productId) => {
   console.log(`Product ${productId} deleted`)
 })
+

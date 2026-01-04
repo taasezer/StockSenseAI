@@ -119,12 +119,19 @@ const Dashboard = () => {
               </button>
             </div>
 
-            {/* Card 3 - AI Features */}
-            <div className="stat-card" style={{ borderColor: 'var(--warning)' }}>
-              <h3 className="stat-title" style={{ color: 'var(--warning)' }}>AI Features</h3>
+            {/* Card 3 - Supply Chain */}
+            <div className="stat-card" style={{ borderColor: 'var(--secondary)' }}>
+              <h3 className="stat-title" style={{ color: 'var(--secondary)' }}>🚚 Supply Chain</h3>
               <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
-                Powered by OpenAI for smart descriptions & predictions
+                Manage suppliers and track shipments
               </p>
+              <button
+                onClick={() => navigate('/suppliers')}
+                className="btn btn-secondary btn-sm"
+                style={{ marginTop: 'var(--spacing-sm)' }}
+              >
+                Manage Suppliers
+              </button>
             </div>
           </div>
 

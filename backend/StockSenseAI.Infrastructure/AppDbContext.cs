@@ -12,6 +12,7 @@ namespace StockSenseAI.Infrastructure
         public DbSet<SalesHistory> SalesHistories { get; set; } = null!;
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Supplier> Suppliers { get; set; } = null!;
+        public DbSet<Shipment> Shipments { get; set; } = null!;
         public DbSet<AlertSettings> AlertSettings { get; set; } = null!;
         public DbSet<StockAlert> StockAlerts { get; set; } = null!;
 
@@ -35,6 +36,17 @@ namespace StockSenseAI.Infrastructure
                 .HasOne(a => a.Product)
                 .WithMany()
                 .HasForeignKey(a => a.ProductId);
+            
+            // Shipment relationships
+            modelBuilder.Entity<Shipment>()
+                .HasOne(s => s.Product)
+                .WithMany()
+                .HasForeignKey(s => s.ProductId);
+
+            modelBuilder.Entity<Shipment>()
+                .HasOne(s => s.Supplier)
+                .WithMany()
+                .HasForeignKey(s => s.SupplierId);
             
             // Ignore computed property
             modelBuilder.Entity<Product>()
