@@ -15,6 +15,9 @@ namespace StockSenseAI.Infrastructure
         public DbSet<Shipment> Shipments { get; set; } = null!;
         public DbSet<AlertSettings> AlertSettings { get; set; } = null!;
         public DbSet<StockAlert> StockAlerts { get; set; } = null!;
+        public DbSet<Warehouse> Warehouses { get; set; } = null!;
+        public DbSet<WarehouseStock> WarehouseStocks { get; set; } = null!;
+        public DbSet<StockTransfer> StockTransfers { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -47,6 +50,35 @@ namespace StockSenseAI.Infrastructure
                 .HasOne(s => s.Supplier)
                 .WithMany()
                 .HasForeignKey(s => s.SupplierId);
+            
+            // WarehouseStock relationships
+            modelBuilder.Entity<WarehouseStock>()
+                .HasOne(ws => ws.Warehouse)
+                .WithMany(w => w.WarehouseStocks)
+                .HasForeignKey(ws => ws.WarehouseId);
+
+            modelBuilder.Entity<WarehouseStock>()
+                .HasOne(ws => ws.Product)
+                .WithMany()
+                .HasForeignKey(ws => ws.ProductId);
+
+            // StockTransfer relationships
+            modelBuilder.Entity<StockTransfer>()
+                .HasOne(st => st.SourceWarehouse)
+                .WithMany()
+                .HasForeignKey(st => st.SourceWarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StockTransfer>()
+                .HasOne(st => st.DestinationWarehouse)
+                .WithMany()
+                .HasForeignKey(st => st.DestinationWarehouseId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<StockTransfer>()
+                .HasOne(st => st.Product)
+                .WithMany()
+                .HasForeignKey(st => st.ProductId);
             
             // Ignore computed property
             modelBuilder.Entity<Product>()

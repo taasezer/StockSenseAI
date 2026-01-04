@@ -87,7 +87,7 @@ const Dashboard = () => {
             </div>
           )}
 
-          <div className="grid" style={{ marginTop: 'var(--spacing-xl)', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
+          <div className="grid" style={{ marginTop: 'var(--spacing-xl)', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '16px' }}>
             {/* Card 1 - Products */}
             <div className="stat-card" style={{ borderColor: 'var(--primary)' }}>
               <h3 className="stat-title" style={{ color: 'var(--primary)' }}>Products</h3>
@@ -161,6 +161,21 @@ const Dashboard = () => {
                 style={{ marginTop: 'var(--spacing-sm)', backgroundColor: '#7c3aed', color: 'white' }}
               >
                 View Insights
+              </button>
+            </div>
+
+            {/* Card 6 - Warehouses */}
+            <div className="stat-card" style={{ borderColor: '#0d9488' }}>
+              <h3 className="stat-title" style={{ color: '#0d9488' }}>🏭 Warehouses</h3>
+              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
+                Multi-warehouse stock & transfers
+              </p>
+              <button
+                onClick={() => navigate('/warehouses')}
+                className="btn"
+                style={{ marginTop: 'var(--spacing-sm)', backgroundColor: '#0d9488', color: 'white' }}
+              >
+                Manage
               </button>
             </div>
           </div>

@@ -257,6 +257,62 @@ export const getAnomalies = async () => {
   return response.data
 }
 
+// Warehouse API functions
+export const getWarehouses = async () => {
+  const response = await api.get('/warehouses')
+  return response.data
+}
+
+export const getWarehouse = async (id: number) => {
+  const response = await api.get(`/warehouses/${id}`)
+  return response.data
+}
+
+export const createWarehouse = async (warehouse: any) => {
+  const response = await api.post('/warehouses', warehouse)
+  return response.data
+}
+
+export const updateWarehouse = async (id: number, warehouse: any) => {
+  const response = await api.put(`/warehouses/${id}`, warehouse)
+  return response.data
+}
+
+export const deleteWarehouse = async (id: number) => {
+  const response = await api.delete(`/warehouses/${id}`)
+  return response.data
+}
+
+export const getWarehouseStock = async (warehouseId: number) => {
+  const response = await api.get(`/warehouses/${warehouseId}/stock`)
+  return response.data
+}
+
+export const addWarehouseStock = async (warehouseId: number, stock: any) => {
+  const response = await api.post(`/warehouses/${warehouseId}/stock`, stock)
+  return response.data
+}
+
+export const getStockTransfers = async () => {
+  const response = await api.get('/warehouses/transfers')
+  return response.data
+}
+
+export const createStockTransfer = async (transfer: any) => {
+  const response = await api.post('/warehouses/transfers', transfer)
+  return response.data
+}
+
+export const completeTransfer = async (id: number) => {
+  const response = await api.post(`/warehouses/transfers/${id}/complete`)
+  return response.data
+}
+
+export const cancelTransfer = async (id: number) => {
+  const response = await api.post(`/warehouses/transfers/${id}/cancel`)
+  return response.data
+}
+
 // SignalR event listeners
 productHubConnection.on("ReceiveProductUpdate", (product) => {
   console.log("Product updated:", product)
@@ -269,6 +325,7 @@ productHubConnection.on("ReceiveSalesPrediction", (productId, prediction) => {
 productHubConnection.on("ReceiveProductDeleted", (productId) => {
   console.log(`Product ${productId} deleted`)
 })
+
 
 
 

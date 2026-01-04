@@ -7,6 +7,7 @@ import Alerts from './pages/Alerts'
 import Suppliers from './pages/Suppliers'
 import Reports from './pages/Reports'
 import AIInsights from './pages/AIInsights'
+import Warehouses from './pages/Warehouses'
 
 function App() {
   return (
@@ -20,6 +21,7 @@ function App() {
         <Route path="/suppliers" element={<Suppliers />} />
         <Route path="/reports" element={<Reports />} />
         <Route path="/ai-insights" element={<AIInsights />} />
+        <Route path="/warehouses" element={<Warehouses />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </div>
@@ -27,6 +29,7 @@ function App() {
 }
 
 export default App
+
 
 
 
