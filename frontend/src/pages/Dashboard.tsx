@@ -87,7 +87,7 @@ const Dashboard = () => {
             </div>
           )}
 
-          <div className="grid" style={{ marginTop: 'var(--spacing-xl)', display: 'grid', gridTemplateColumns: 'repeat(6, 1fr)', gap: '16px' }}>
+          <div className="grid" style={{ marginTop: 'var(--spacing-xl)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
             {/* Card 1 - Products */}
             <div className="stat-card" style={{ borderColor: 'var(--primary)' }}>
               <h3 className="stat-title" style={{ color: 'var(--primary)' }}>Products</h3>
@@ -176,6 +176,21 @@ const Dashboard = () => {
                 style={{ marginTop: 'var(--spacing-sm)', backgroundColor: '#0d9488', color: 'white' }}
               >
                 Manage
+              </button>
+            </div>
+
+            {/* Card 7 - Barcodes */}
+            <div className="stat-card" style={{ borderColor: '#ec4899' }}>
+              <h3 className="stat-title" style={{ color: '#ec4899' }}>📱 Barcodes</h3>
+              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
+                QR codes & label printing
+              </p>
+              <button
+                onClick={() => navigate('/barcodes')}
+                className="btn"
+                style={{ marginTop: 'var(--spacing-sm)', backgroundColor: '#ec4899', color: 'white' }}
+              >
+                Generate
               </button>
             </div>
           </div>

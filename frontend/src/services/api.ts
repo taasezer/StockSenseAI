@@ -313,6 +313,32 @@ export const cancelTransfer = async (id: number) => {
   return response.data
 }
 
+// Barcode/QR API functions
+export const generateQRCode = async (productId: number, size: number = 200) => {
+  const response = await api.get(`/barcodes/qr/${productId}?size=${size}`)
+  return response.data
+}
+
+export const scanBarcode = async (code: string) => {
+  const response = await api.get(`/barcodes/scan?code=${encodeURIComponent(code)}`)
+  return response.data
+}
+
+export const getProductLabel = async (productId: number) => {
+  const response = await api.get(`/barcodes/label/${productId}`)
+  return response.data
+}
+
+export const generateBulkBarcodes = async (productIds: number[], barcodeType: string = 'QR') => {
+  const response = await api.post('/barcodes/bulk', { productIds, barcodeType })
+  return response.data
+}
+
+export const downloadLabelSheet = async (productIds: number[]) => {
+  const response = await api.post('/barcodes/labels/pdf', { productIds }, { responseType: 'blob' })
+  downloadBlob(response.data, `product-labels-${new Date().toISOString().split('T')[0]}.pdf`)
+}
+
 // SignalR event listeners
 productHubConnection.on("ReceiveProductUpdate", (product) => {
   console.log("Product updated:", product)
@@ -325,6 +351,7 @@ productHubConnection.on("ReceiveSalesPrediction", (productId, prediction) => {
 productHubConnection.on("ReceiveProductDeleted", (productId) => {
   console.log(`Product ${productId} deleted`)
 })
+
 
 
 
