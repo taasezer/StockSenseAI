@@ -87,7 +87,7 @@ const Dashboard = () => {
             </div>
           )}
 
-          <div className="grid" style={{ marginTop: 'var(--spacing-xl)', display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+          <div className="grid" style={{ marginTop: 'var(--spacing-xl)', display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '16px' }}>
             {/* Card 1 - Products */}
             <div className="stat-card" style={{ borderColor: 'var(--primary)' }}>
               <h3 className="stat-title" style={{ color: 'var(--primary)' }}>Products</h3>
@@ -138,7 +138,7 @@ const Dashboard = () => {
             <div className="stat-card" style={{ borderColor: 'var(--warning)' }}>
               <h3 className="stat-title" style={{ color: 'var(--warning)' }}>📊 Reports</h3>
               <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
-                Generate PDF reports for inventory and shipments
+                Generate PDF reports for inventory
               </p>
               <button
                 onClick={() => navigate('/reports')}
@@ -146,6 +146,21 @@ const Dashboard = () => {
                 style={{ marginTop: 'var(--spacing-sm)' }}
               >
                 View Reports
+              </button>
+            </div>
+
+            {/* Card 5 - AI Insights */}
+            <div className="stat-card" style={{ borderColor: '#7c3aed' }}>
+              <h3 className="stat-title" style={{ color: '#7c3aed' }}>🤖 AI Insights</h3>
+              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
+                Price optimization & anomaly detection
+              </p>
+              <button
+                onClick={() => navigate('/ai-insights')}
+                className="btn"
+                style={{ marginTop: 'var(--spacing-sm)', backgroundColor: '#7c3aed', color: 'white' }}
+              >
+                View Insights
               </button>
             </div>
           </div>

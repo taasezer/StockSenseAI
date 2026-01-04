@@ -231,6 +231,32 @@ const downloadBlob = (blob: Blob, filename: string) => {
   document.body.removeChild(a)
 }
 
+// AI Insights API functions
+export const getAIInsights = async () => {
+  const response = await api.get('/ai-insights')
+  return response.data
+}
+
+export const getPriceOptimization = async (productId: number) => {
+  const response = await api.get(`/ai-insights/price-optimization/${productId}`)
+  return response.data
+}
+
+export const getAllPriceOptimizations = async () => {
+  const response = await api.get('/ai-insights/price-optimizations')
+  return response.data
+}
+
+export const getTrendAnalysis = async (productId: number) => {
+  const response = await api.get(`/ai-insights/trends/${productId}`)
+  return response.data
+}
+
+export const getAnomalies = async () => {
+  const response = await api.get('/ai-insights/anomalies')
+  return response.data
+}
+
 // SignalR event listeners
 productHubConnection.on("ReceiveProductUpdate", (product) => {
   console.log("Product updated:", product)
@@ -243,5 +269,6 @@ productHubConnection.on("ReceiveSalesPrediction", (productId, prediction) => {
 productHubConnection.on("ReceiveProductDeleted", (productId) => {
   console.log(`Product ${productId} deleted`)
 })
+
 
 
