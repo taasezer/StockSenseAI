@@ -18,6 +18,10 @@ namespace StockSenseAI.Infrastructure
         public DbSet<Warehouse> Warehouses { get; set; } = null!;
         public DbSet<WarehouseStock> WarehouseStocks { get; set; } = null!;
         public DbSet<StockTransfer> StockTransfers { get; set; } = null!;
+        public DbSet<WebhookConfig> WebhookConfigs { get; set; } = null!;
+        public DbSet<WebhookLog> WebhookLogs { get; set; } = null!;
+        public DbSet<ExternalOrder> ExternalOrders { get; set; } = null!;
+        public DbSet<ExternalOrderItem> ExternalOrderItems { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {

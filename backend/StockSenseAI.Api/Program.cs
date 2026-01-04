@@ -38,6 +38,7 @@ builder.Services.AddScoped<IReportService, ReportService>();
 builder.Services.AddScoped<IAIInsightsService, AIInsightsService>();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IBarcodeService, BarcodeService>();
+builder.Services.AddScoped<IIntegrationService, IntegrationService>();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddHttpClient();
 

@@ -339,6 +339,56 @@ export const downloadLabelSheet = async (productIds: number[]) => {
   downloadBlob(response.data, `product-labels-${new Date().toISOString().split('T')[0]}.pdf`)
 }
 
+// Integration API functions
+export const getIntegrationDashboard = async () => {
+  const response = await api.get('/integrations/dashboard')
+  return response.data
+}
+
+export const getWebhooks = async () => {
+  const response = await api.get('/integrations/webhooks')
+  return response.data
+}
+
+export const createWebhook = async (webhook: any) => {
+  const response = await api.post('/integrations/webhooks', webhook)
+  return response.data
+}
+
+export const updateWebhook = async (id: number, webhook: any) => {
+  const response = await api.put(`/integrations/webhooks/${id}`, webhook)
+  return response.data
+}
+
+export const deleteWebhook = async (id: number) => {
+  const response = await api.delete(`/integrations/webhooks/${id}`)
+  return response.data
+}
+
+export const testWebhook = async (id: number) => {
+  const response = await api.post(`/integrations/webhooks/${id}/test`)
+  return response.data
+}
+
+export const getWebhookLogs = async (webhookId?: number, limit: number = 50) => {
+  const params = new URLSearchParams()
+  if (webhookId) params.append('webhookId', webhookId.toString())
+  params.append('limit', limit.toString())
+  const response = await api.get(`/integrations/logs?${params}`)
+  return response.data
+}
+
+export const getExternalOrders = async (status?: string) => {
+  const url = status ? `/integrations/orders?status=${status}` : '/integrations/orders'
+  const response = await api.get(url)
+  return response.data
+}
+
+export const updateOrderStatus = async (id: number, status: string) => {
+  const response = await api.patch(`/integrations/orders/${id}/status`, { status })
+  return response.data
+}
+
 // SignalR event listeners
 productHubConnection.on("ReceiveProductUpdate", (product) => {
   console.log("Product updated:", product)
@@ -351,6 +401,7 @@ productHubConnection.on("ReceiveSalesPrediction", (productId, prediction) => {
 productHubConnection.on("ReceiveProductDeleted", (productId) => {
   console.log(`Product ${productId} deleted`)
 })
+
 
 
 

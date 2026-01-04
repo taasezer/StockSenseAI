@@ -193,6 +193,21 @@ const Dashboard = () => {
                 Generate
               </button>
             </div>
+
+            {/* Card 8 - Integrations */}
+            <div className="stat-card" style={{ borderColor: '#0ea5e9' }}>
+              <h3 className="stat-title" style={{ color: '#0ea5e9' }}>🔌 Integrations</h3>
+              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
+                Webhooks & e-commerce sync
+              </p>
+              <button
+                onClick={() => navigate('/integrations')}
+                className="btn"
+                style={{ marginTop: 'var(--spacing-sm)', backgroundColor: '#0ea5e9', color: 'white' }}
+              >
+                Configure
+              </button>
+            </div>
           </div>
 
           {!stats.loading && !stats.error && (
