@@ -3,6 +3,7 @@ import Login from './pages/Login'
 import Register from './pages/Register'
 import Dashboard from './pages/Dashboard'
 import Products from './pages/Products'
+import Alerts from './pages/Alerts'
 
 function App() {
   return (
@@ -12,6 +13,7 @@ function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/products" element={<Products />} />
+        <Route path="/alerts" element={<Alerts />} />
         <Route path="/" element={<Navigate to="/login" replace />} />
       </Routes>
     </div>
@@ -19,3 +21,4 @@ function App() {
 }
 
 export default App
+

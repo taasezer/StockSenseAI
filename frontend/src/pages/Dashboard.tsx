@@ -104,12 +104,19 @@ const Dashboard = () => {
               </button>
             </div>
 
-            {/* Card 2 - Analytics */}
-            <div className="stat-card" style={{ borderColor: 'var(--secondary)' }}>
-              <h3 className="stat-title" style={{ color: 'var(--secondary)' }}>Analytics</h3>
+            {/* Card 2 - Alerts */}
+            <div className="stat-card" style={{ borderColor: 'var(--danger)' }}>
+              <h3 className="stat-title" style={{ color: 'var(--danger)' }}>⚠️ Alerts</h3>
               <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
-                View sales predictions and insights powered by AI
+                Monitor low stock and out of stock products
               </p>
+              <button
+                onClick={() => navigate('/alerts')}
+                className="btn btn-danger btn-sm"
+                style={{ marginTop: 'var(--spacing-sm)' }}
+              >
+                View Alerts
+              </button>
             </div>
 
             {/* Card 3 - AI Features */}

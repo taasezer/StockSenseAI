@@ -95,6 +95,47 @@ export const register = async (username: string, password: string) => {
   return response.data
 }
 
+// Alert API functions
+export const getAlertSummary = async () => {
+  const response = await api.get('/alerts/summary')
+  return response.data
+}
+
+export const getLowStockProducts = async () => {
+  const response = await api.get('/alerts/low-stock')
+  return response.data
+}
+
+export const getActiveAlerts = async () => {
+  const response = await api.get('/alerts/active')
+  return response.data
+}
+
+export const checkAlerts = async () => {
+  const response = await api.post('/alerts/check')
+  return response.data
+}
+
+export const getAlertSettings = async () => {
+  const response = await api.get('/alerts/settings')
+  return response.data
+}
+
+export const updateAlertSettings = async (settings: any) => {
+  const response = await api.put('/alerts/settings', settings)
+  return response.data
+}
+
+export const markAlertAsRead = async (id: number) => {
+  const response = await api.patch(`/alerts/${id}/read`)
+  return response.data
+}
+
+export const resolveAlert = async (id: number) => {
+  const response = await api.patch(`/alerts/${id}/resolve`)
+  return response.data
+}
+
 // SignalR event listeners
 productHubConnection.on("ReceiveProductUpdate", (product) => {
   console.log("Product updated:", product)

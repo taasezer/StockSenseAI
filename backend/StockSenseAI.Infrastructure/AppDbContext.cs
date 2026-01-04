@@ -1,6 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using StockSenseAI.Core.Entities;
-using BCrypt.Net; // ✅ BCrypt.Net kütüphanesini ekledik
+using BCrypt.Net;
 
 namespace StockSenseAI.Infrastructure
 {
@@ -11,9 +11,35 @@ namespace StockSenseAI.Infrastructure
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<SalesHistory> SalesHistories { get; set; } = null!;
         public DbSet<User> Users { get; set; } = null!;
+        public DbSet<Supplier> Suppliers { get; set; } = null!;
+        public DbSet<AlertSettings> AlertSettings { get; set; } = null!;
+        public DbSet<StockAlert> StockAlerts { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            // Product-Supplier relationship
+            modelBuilder.Entity<Product>()
+                .HasOne(p => p.Supplier)
+                .WithMany(s => s.Products)
+                .HasForeignKey(p => p.SupplierId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            // AlertSettings-User relationship
+            modelBuilder.Entity<AlertSettings>()
+                .HasOne(a => a.User)
+                .WithMany()
+                .HasForeignKey(a => a.UserId);
+
+            // StockAlert-Product relationship
+            modelBuilder.Entity<StockAlert>()
+                .HasOne(a => a.Product)
+                .WithMany()
+                .HasForeignKey(a => a.ProductId);
+            
+            // Ignore computed property
+            modelBuilder.Entity<Product>()
+                .Ignore(p => p.IsLowStock);
+
             // 🔒 Seed data – başlangıç kullanıcıları
             modelBuilder.Entity<User>().HasData(
                 new User
@@ -31,30 +57,65 @@ namespace StockSenseAI.Infrastructure
                     Role = "User"
                 }
             );
+            
+            // 🏭 Supplier seed data
+            modelBuilder.Entity<Supplier>().HasData(
+                new Supplier
+                {
+                    Id = 1,
+                    Name = "TechSupply Co.",
+                    ContactEmail = "orders@techsupply.com",
+                    ContactPhone = "+90 555 123 4567",
+                    AverageLeadTimeDays = 5,
+                    IsActive = true
+                }
+            );
 
-            // 📦 Product seed data
+            // 📦 Product seed data with new fields
             modelBuilder.Entity<Product>().HasData(
                 new Product
                 {
                     Id = 1,
                     Name = "Wireless Headphones",
+                    Sku = "WH-001",
                     Price = 99.99m,
                     Category = "Electronics",
                     StockCount = 50,
+                    ReorderLevel = 15,
+                    LeadTimeDays = 5,
+                    SupplierId = 1,
                     Description = "High-quality wireless headphones with noise cancellation."
                 },
                 new Product
                 {
                     Id = 2,
                     Name = "Smart Watch",
+                    Sku = "SW-001",
                     Price = 199.99m,
                     Category = "Electronics",
-                    StockCount = 30,
+                    StockCount = 8, // Low stock for demo
+                    ReorderLevel = 10,
+                    LeadTimeDays = 7,
+                    SupplierId = 1,
                     Description = "Fitness tracking and smart notifications on your wrist."
+                },
+                new Product
+                {
+                    Id = 3,
+                    Name = "USB-C Hub",
+                    Sku = "USB-001",
+                    Price = 49.99m,
+                    Category = "Accessories",
+                    StockCount = 0, // Out of stock for demo
+                    ReorderLevel = 20,
+                    LeadTimeDays = 3,
+                    SupplierId = 1,
+                    Description = "7-in-1 USB-C hub with HDMI, USB-A, and SD card slots."
                 }
             );
 
-            base.OnModelCreating(modelBuilder); // ✅ Base çağrısı ekledik
+            base.OnModelCreating(modelBuilder);
         }
     }
 }
+
