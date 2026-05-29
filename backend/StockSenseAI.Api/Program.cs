@@ -9,6 +9,9 @@ using StockSenseAI.Infrastructure.Repositories;
 using StockSenseAI.Services;
 using System.Text;
 
+// Load .env file
+DotNetEnv.Env.TraversePath().Load();
+
 var builder = WebApplication.CreateBuilder(args);
 
 // Configure Kestrel to listen on port 5000
@@ -21,9 +24,12 @@ builder.Services.AddSwaggerGen(c => {
     c.SwaggerDoc("v1", new OpenApiInfo { Title = "StockSenseAI API", Version = "v1" });
 });
 
-// Database - InMemory
+// Database - PostgreSQL
+var connectionString = builder.Configuration.GetConnectionString("DefaultConnection") 
+    ?? throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
+
 builder.Services.AddDbContext<AppDbContext>(options =>
-    options.UseInMemoryDatabase("StockSenseAI"));
+    options.UseNpgsql(connectionString));
 
 // Services & Repositories
 builder.Services.AddScoped<IProductRepository, ProductRepository>();
@@ -45,13 +51,12 @@ builder.Services.AddHttpClient();
 // CORS - Configure for SignalR compatibility
 builder.Services.AddCors(options =>
 {
+    var allowedOrigins = builder.Configuration.GetSection("AllowedOrigins").Get<string[]>() 
+        ?? new[] { "http://localhost:5173", "http://localhost:3000", "http://127.0.0.1:5173", "http://127.0.0.1:3000" };
+
     options.AddPolicy("AllowAll", policy =>
     {
-        policy.WithOrigins(
-                "http://localhost:5173",
-                "http://localhost:3000",
-                "http://127.0.0.1:5173",
-                "http://127.0.0.1:3000")
+        policy.WithOrigins(allowedOrigins)
               .AllowAnyMethod()
               .AllowAnyHeader()
               .AllowCredentials();
@@ -61,10 +66,10 @@ builder.Services.AddCors(options =>
 // SignalR
 builder.Services.AddSignalR();
 
-// JWT Authentication - with defaults
-var jwtKey = "StockSenseAI-Super-Secret-Key-For-JWT-Min-32-Characters-Long!";
-var jwtIssuer = "StockSenseAI";
-var jwtAudience = "StockSenseAI";
+// JWT Authentication
+var jwtKey = builder.Configuration["Jwt:Key"] ?? "Fallback-Secret-Key-For-JWT-Min-32-Characters-Long!";
+var jwtIssuer = builder.Configuration["Jwt:Issuer"] ?? "StockSenseAI";
+var jwtAudience = builder.Configuration["Jwt:Audience"] ?? "StockSenseAI";
 
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options => {
@@ -104,11 +109,9 @@ var app = builder.Build();
 // Configure pipeline - SIMPLE
 app.UseCors("AllowAll");
 
-if (app.Environment.IsDevelopment()) 
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+// Enable Swagger for both Development and Production for easy testing
+app.UseSwagger();
+app.UseSwaggerUI();
 
 app.UseAuthentication();
 app.UseAuthorization();
@@ -126,6 +129,7 @@ using (var scope = app.Services.CreateScope())
 }
 
 Console.WriteLine("🚀 StockSenseAI API started on http://localhost:5000");
-Console.WriteLine("📖 Swagger UI: http://localhost:5000/swagger");
+Console.WriteLine("📖 Swagger UI: http://localhost:5000/swagger/index.html");
+Console.WriteLine("⚠️ DIKKAT: Lütfen tarayıcıda HTTPS değil HTTP ile girdiğinizden emin olun!");
 
 app.Run();

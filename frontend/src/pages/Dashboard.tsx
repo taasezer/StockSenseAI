@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { getProducts } from '../services/api'
+import { getProducts, productHubConnection } from '../services/api'
 
 const Dashboard = () => {
   const navigate = useNavigate()
@@ -46,6 +46,22 @@ const Dashboard = () => {
     }
 
     fetchDashboardData()
+
+    // Setup live listeners for Dashboard stats
+    const handleProductAddedOrDeleted = () => {
+      // Re-fetch to get correct totals. Alternatively, we could increment/decrement stats state directly.
+      fetchDashboardData()
+    }
+
+    productHubConnection.on("ReceiveProductDeleted", handleProductAddedOrDeleted)
+    // We might not have a generic ReceiveProductCreated, but ReceiveProductUpdate handles updates
+    // For full live tracking on the dashboard, a simple re-fetch when anything changes is safe.
+    productHubConnection.on("ReceiveProductUpdate", handleProductAddedOrDeleted)
+
+    return () => {
+      productHubConnection.off("ReceiveProductDeleted", handleProductAddedOrDeleted)
+      productHubConnection.off("ReceiveProductUpdate", handleProductAddedOrDeleted)
+    }
   }, [navigate])
 
   const handleLogout = () => {

@@ -37,208 +37,127 @@ public class AIInsightsService : IAIInsightsService
         };
     }
 
+    private async Task<string> CallOpenAIJsonAsync(string systemPrompt, string userPrompt)
+    {
+        var apiKey = _config["OpenAI:ApiKey"];
+        if (string.IsNullOrEmpty(apiKey)) return "{}";
+
+        var request = new
+        {
+            model = "gpt-4o",
+            messages = new[]
+            {
+                new { role = "system", content = systemPrompt },
+                new { role = "user", content = userPrompt }
+            },
+            temperature = 0.3,
+            response_format = new { type = "json_object" }
+        };
+
+        var client = _httpClientFactory.CreateClient();
+        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", apiKey);
+
+        var response = await client.PostAsJsonAsync(
+            "https://api.openai.com/v1/chat/completions",
+            request,
+            new JsonSerializerOptions { PropertyNamingPolicy = JsonNamingPolicy.CamelCase }
+        );
+
+        if (!response.IsSuccessStatusCode) return "{}";
+
+        var json = await response.Content.ReadAsStringAsync();
+        try {
+            using var doc = JsonDocument.Parse(json);
+            return doc.RootElement.GetProperty("choices")[0].GetProperty("message").GetProperty("content").GetString() ?? "{}";
+        } catch { return "{}"; }
+    }
+
     public async Task<PriceOptimizationDto> GetPriceOptimizationAsync(int productId)
     {
-        var product = await _context.Products
-            .Include(p => p.Supplier)
-            .FirstOrDefaultAsync(p => p.Id == productId);
+        var product = await _context.Products.FirstOrDefaultAsync(p => p.Id == productId);
+        if (product == null) return new PriceOptimizationDto { ProductId = productId, Reasoning = "Product not found" };
 
-        if (product == null)
-            return new PriceOptimizationDto { ProductId = productId, Reasoning = "Product not found" };
+        var prompt = $"Product: {product.Name}, Price: {product.Price}, Stock: {product.StockCount}, Reorder Level: {product.ReorderLevel}. Provide a JSON response with suggestedPrice (number), reasoning (string), confidence (High/Medium/Low string).";
+        var jsonResponse = await CallOpenAIJsonAsync("You are a pricing optimization AI. Respond ONLY with valid JSON.", prompt);
 
-        // Calculate price optimization based on stock levels and market factors
-        var stockRatio = (double)product.StockCount / Math.Max(product.ReorderLevel, 1);
-        decimal suggestedPrice;
-        string reasoning;
-        string confidence;
+        try
+        {
+            using var doc = JsonDocument.Parse(jsonResponse);
+            var suggestedPrice = doc.RootElement.GetProperty("suggestedPrice").GetDecimal();
+            var reasoning = doc.RootElement.GetProperty("reasoning").GetString() ?? "";
+            var confidence = doc.RootElement.GetProperty("confidence").GetString() ?? "Medium";
 
-        if (product.StockCount == 0)
-        {
-            // Out of stock - no price change needed until restocked
-            suggestedPrice = product.Price;
-            reasoning = "Product is out of stock. Maintain current price until restocked.";
-            confidence = "Low";
+            return new PriceOptimizationDto
+            {
+                ProductId = product.Id, ProductName = product.Name, CurrentPrice = product.Price,
+                SuggestedPrice = suggestedPrice, PriceChange = suggestedPrice - product.Price,
+                PriceChangePercent = product.Price > 0 ? Math.Round((suggestedPrice - product.Price) / product.Price * 100, 2) : 0,
+                Reasoning = reasoning, Confidence = confidence
+            };
         }
-        else if (stockRatio > 3)
+        catch
         {
-            // Overstocked - suggest price reduction to move inventory
-            var discount = Math.Min(0.15m, (decimal)(stockRatio - 2) * 0.05m);
-            suggestedPrice = Math.Round(product.Price * (1 - discount), 2);
-            reasoning = $"High stock levels ({product.StockCount} units, {stockRatio:F1}x reorder level). Consider a {discount * 100:F0}% price reduction to accelerate sales.";
-            confidence = "High";
+            return new PriceOptimizationDto { ProductId = product.Id, ProductName = product.Name, CurrentPrice = product.Price, SuggestedPrice = product.Price, Reasoning = "AI Error" };
         }
-        else if (stockRatio < 0.5)
-        {
-            // Low stock with high demand potential - can increase price
-            var increase = 0.05m + (decimal)(0.5 - stockRatio) * 0.1m;
-            suggestedPrice = Math.Round(product.Price * (1 + increase), 2);
-            reasoning = $"Low stock ({product.StockCount} units) indicates high demand. Consider a {increase * 100:F0}% price increase.";
-            confidence = "Medium";
-        }
-        else
-        {
-            // Normal stock levels
-            suggestedPrice = product.Price;
-            reasoning = "Stock levels are optimal. Current pricing is appropriate.";
-            confidence = "High";
-        }
-
-        return new PriceOptimizationDto
-        {
-            ProductId = product.Id,
-            ProductName = product.Name,
-            CurrentPrice = product.Price,
-            SuggestedPrice = suggestedPrice,
-            PriceChange = suggestedPrice - product.Price,
-            PriceChangePercent = product.Price > 0 ? Math.Round((suggestedPrice - product.Price) / product.Price * 100, 2) : 0,
-            Reasoning = reasoning,
-            Confidence = confidence
-        };
     }
 
     public async Task<TrendAnalysisDto> GetTrendAnalysisAsync(int productId)
     {
-        var product = await _context.Products
-            .Include(p => p.SalesHistories)
-            .FirstOrDefaultAsync(p => p.Id == productId);
+        var product = await _context.Products.Include(p => p.SalesHistories).FirstOrDefaultAsync(p => p.Id == productId);
+        if (product == null) return new TrendAnalysisDto { ProductId = productId };
 
-        if (product == null)
-            return new TrendAnalysisDto { ProductId = productId };
+        var historyData = string.Join(", ", (product.SalesHistories ?? new List<SalesHistory>()).Select(s => $"{s.Month:MMM}: {s.Quantity}"));
+        var prompt = $"Product: {product.Name}, Sales History: {historyData}. Provide a JSON with trend (Rising/Declining/Stable string), seasonalPattern (string), peakSeason (string), recommendation (string), monthlyForecast (array of 3 integers).";
 
-        var salesHistory = product.SalesHistories?.OrderBy(s => s.Month).ToList() ?? new List<SalesHistory>();
-        
-        string trend = "Stable";
-        string seasonalPattern = "No clear pattern";
-        string peakSeason = "N/A";
-        var forecast = new List<int>();
-        string recommendation;
+        var jsonResponse = await CallOpenAIJsonAsync("You are a sales trend AI. Respond ONLY with valid JSON.", prompt);
 
-        if (salesHistory.Count >= 3)
+        try
         {
-            var recent = salesHistory.TakeLast(3).Select(s => s.Quantity).ToList();
-            if (recent[2] > recent[1] && recent[1] > recent[0])
-                trend = "Rising";
-            else if (recent[2] < recent[1] && recent[1] < recent[0])
-                trend = "Declining";
+            using var doc = JsonDocument.Parse(jsonResponse);
+            var trend = doc.RootElement.GetProperty("trend").GetString() ?? "Stable";
+            var pattern = doc.RootElement.GetProperty("seasonalPattern").GetString() ?? "Unknown";
+            var peak = doc.RootElement.GetProperty("peakSeason").GetString() ?? "Unknown";
+            var rec = doc.RootElement.GetProperty("recommendation").GetString() ?? "";
+            var forecast = doc.RootElement.GetProperty("monthlyForecast").EnumerateArray().Select(x => x.GetInt32()).ToList();
 
-            // Simple forecast based on average
-            var avg = (int)salesHistory.Average(s => s.Quantity);
-            forecast = Enumerable.Range(1, 3).Select(_ => avg + (trend == "Rising" ? 10 : trend == "Declining" ? -5 : 0)).ToList();
-
-            // Detect seasonal patterns (simplified)
-            var maxMonth = salesHistory.OrderByDescending(s => s.Quantity).FirstOrDefault();
-            if (maxMonth != null)
-            {
-                peakSeason = GetSeasonFromMonth(maxMonth.Month);
-                seasonalPattern = $"Peak sales typically occur in {peakSeason}";
-            }
+            return new TrendAnalysisDto { ProductId = product.Id, ProductName = product.Name, Trend = trend, SeasonalPattern = pattern, PeakSeason = peak, Recommendation = rec, MonthlyForecast = forecast };
         }
-        else
+        catch
         {
-            forecast = new List<int> { product.StockCount / 3, product.StockCount / 3, product.StockCount / 3 };
+            return new TrendAnalysisDto { ProductId = product.Id, ProductName = product.Name, Trend = "Unknown", Recommendation = "AI Error", MonthlyForecast = new List<int> { 0, 0, 0 } };
         }
-
-        recommendation = trend switch
-        {
-            "Rising" => "Consider increasing stock levels to meet growing demand.",
-            "Declining" => "Review pricing strategy and marketing efforts. Consider promotions.",
-            _ => "Maintain current inventory and pricing strategy."
-        };
-
-        return new TrendAnalysisDto
-        {
-            ProductId = product.Id,
-            ProductName = product.Name,
-            Trend = trend,
-            SeasonalPattern = seasonalPattern,
-            PeakSeason = peakSeason,
-            Recommendation = recommendation,
-            MonthlyForecast = forecast
-        };
     }
 
     public async Task<IEnumerable<AnomalyDto>> DetectAnomaliesAsync()
     {
-        var anomalies = new List<AnomalyDto>();
-        var products = await _context.Products.Include(p => p.Supplier).ToListAsync();
+        var products = await _context.Products.ToListAsync();
+        if (!products.Any()) return new List<AnomalyDto>();
 
-        foreach (var product in products)
+        var productSummary = string.Join(" | ", products.Take(20).Select(p => $"ID:{p.Id}, {p.Name}, Stock:{p.StockCount}, Reorder:{p.ReorderLevel}, Price:{p.Price}"));
+        var prompt = $"Products: {productSummary}. Find anomalies (e.g., out of stock, overstocked, weird prices). Provide JSON with an array 'anomalies' containing objects: productId (int), anomalyType (string), severity (Critical/Warning/Info), description (string), suggestedAction (string).";
+
+        var jsonResponse = await CallOpenAIJsonAsync("You are an anomaly detection AI. Respond ONLY with valid JSON.", prompt);
+
+        var list = new List<AnomalyDto>();
+        try
         {
-            // Stock anomaly: Out of stock
-            if (product.StockCount == 0)
+            using var doc = JsonDocument.Parse(jsonResponse);
+            foreach (var a in doc.RootElement.GetProperty("anomalies").EnumerateArray())
             {
-                anomalies.Add(new AnomalyDto
+                list.Add(new AnomalyDto
                 {
-                    ProductId = product.Id,
-                    ProductName = product.Name,
-                    AnomalyType = "StockAnomaly",
-                    Severity = "Critical",
-                    Description = $"{product.Name} is completely out of stock!",
-                    SuggestedAction = $"Order at least {product.ReorderLevel * 2} units immediately from {product.Supplier?.Name ?? "supplier"}."
-                });
-            }
-            // Stock anomaly: Very low stock
-            else if (product.StockCount <= product.ReorderLevel / 2 && product.StockCount > 0)
-            {
-                anomalies.Add(new AnomalyDto
-                {
-                    ProductId = product.Id,
-                    ProductName = product.Name,
-                    AnomalyType = "StockAnomaly",
-                    Severity = "Warning",
-                    Description = $"{product.Name} is critically low at {product.StockCount} units (below 50% of reorder level).",
-                    SuggestedAction = "Place an urgent restock order."
-                });
-            }
-            // Stock anomaly: Overstocked
-            else if (product.StockCount > product.ReorderLevel * 5)
-            {
-                anomalies.Add(new AnomalyDto
-                {
-                    ProductId = product.Id,
-                    ProductName = product.Name,
-                    AnomalyType = "StockAnomaly",
-                    Severity = "Info",
-                    Description = $"{product.Name} is overstocked at {product.StockCount} units (5x reorder level).",
-                    SuggestedAction = "Consider running a promotion or adjusting future order quantities."
-                });
-            }
-
-            // Price anomaly: Unusually low price
-            if (product.Price < 1)
-            {
-                anomalies.Add(new AnomalyDto
-                {
-                    ProductId = product.Id,
-                    ProductName = product.Name,
-                    AnomalyType = "PriceAnomaly",
-                    Severity = "Warning",
-                    Description = $"{product.Name} has an unusually low price of ${product.Price}.",
-                    SuggestedAction = "Review pricing to ensure profitability."
+                    ProductId = a.GetProperty("productId").GetInt32(),
+                    ProductName = products.FirstOrDefault(p => p.Id == a.GetProperty("productId").GetInt32())?.Name ?? "Unknown",
+                    AnomalyType = a.GetProperty("anomalyType").GetString() ?? "",
+                    Severity = a.GetProperty("severity").GetString() ?? "Info",
+                    Description = a.GetProperty("description").GetString() ?? "",
+                    SuggestedAction = a.GetProperty("suggestedAction").GetString() ?? ""
                 });
             }
         }
+        catch { }
 
-        // Check for pending shipments that are delayed
-        var delayedShipments = await _context.Shipments
-            .Include(s => s.Product)
-            .Where(s => s.Status == ShipmentStatus.Pending && s.ExpectedArrival < DateTime.UtcNow.AddDays(-1))
-            .ToListAsync();
-
-        foreach (var shipment in delayedShipments)
-        {
-            anomalies.Add(new AnomalyDto
-            {
-                ProductId = shipment.ProductId,
-                ProductName = shipment.Product?.Name ?? "Unknown",
-                AnomalyType = "SupplyChainAnomaly",
-                Severity = "Warning",
-                Description = $"Shipment of {shipment.Quantity} units is overdue (expected {shipment.ExpectedArrival:yyyy-MM-dd}).",
-                SuggestedAction = "Contact supplier for status update."
-            });
-        }
-
-        return anomalies.OrderBy(a => a.Severity == "Critical" ? 0 : a.Severity == "Warning" ? 1 : 2);
+        return list;
     }
 
     public async Task<IEnumerable<PriceOptimizationDto>> GetAllPriceOptimizationsAsync()
@@ -246,7 +165,7 @@ public class AIInsightsService : IAIInsightsService
         var products = await _context.Products.ToListAsync();
         var optimizations = new List<PriceOptimizationDto>();
 
-        foreach (var product in products)
+        foreach (var product in products.Take(5)) // Limit to 5 to avoid OpenAI rate limits during testing
         {
             var optimization = await GetPriceOptimizationAsync(product.Id);
             if (optimization.PriceChange != 0)
@@ -271,16 +190,5 @@ public class AIInsightsService : IAIInsightsService
         if (priceChanges > 0)
             return $"✅ No major issues. {priceChanges} price optimization suggestions available.";
         return "✅ All systems operating normally. No issues or optimizations to report.";
-    }
-
-    private static string GetSeasonFromMonth(DateTime date)
-    {
-        return date.Month switch
-        {
-            12 or 1 or 2 => "Winter",
-            3 or 4 or 5 => "Spring",
-            6 or 7 or 8 => "Summer",
-            _ => "Fall"
-        };
     }
 }

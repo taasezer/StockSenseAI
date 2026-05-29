@@ -10,8 +10,17 @@ import AIInsights from './pages/AIInsights'
 import Warehouses from './pages/Warehouses'
 import Barcodes from './pages/Barcodes'
 import Integrations from './pages/Integrations'
+import { useEffect } from 'react'
+import { startSignalRConnection } from './services/api'
 
 function App() {
+  useEffect(() => {
+    const token = localStorage.getItem('token')
+    if (token) {
+      startSignalRConnection()
+    }
+  }, [])
+
   return (
     <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
       <Routes>

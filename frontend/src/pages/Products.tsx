@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { productHubConnection } from '../services/api'
 
 interface Product {
   id: number
@@ -23,6 +24,30 @@ const Products = () => {
     }
 
     fetchProducts()
+
+    // Setup SignalR Listeners
+    const handleProductUpdate = (updatedProduct: Product) => {
+      setProducts(prevProducts => {
+        const exists = prevProducts.find(p => p.id === updatedProduct.id)
+        if (exists) {
+          return prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+        } else {
+          return [...prevProducts, updatedProduct]
+        }
+      })
+    }
+
+    const handleProductDeleted = (productId: number) => {
+      setProducts(prevProducts => prevProducts.filter(p => p.id !== productId))
+    }
+
+    productHubConnection.on("ReceiveProductUpdate", handleProductUpdate)
+    productHubConnection.on("ReceiveProductDeleted", handleProductDeleted)
+
+    return () => {
+      productHubConnection.off("ReceiveProductUpdate", handleProductUpdate)
+      productHubConnection.off("ReceiveProductDeleted", handleProductDeleted)
+    }
   }, [navigate])
 
   const fetchProducts = async () => {

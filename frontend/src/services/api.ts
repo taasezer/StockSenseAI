@@ -371,14 +371,4 @@ export const updateOrderStatus = async (id: number, status: string) => {
     return response.data
 }
 
-productHubConnection.on("ReceiveProductUpdate", (product) => {
-    console.log("Product updated:", product)
-})
-
-productHubConnection.on("ReceiveSalesPrediction", (productId, prediction) => {
-    console.log(`Prediction for product ${productId}:`, prediction)
-})
-
-productHubConnection.on("ReceiveProductDeleted", (productId) => {
-    console.log(`Product ${productId} deleted`)
-})
+// Listeners will be attached inside React components
