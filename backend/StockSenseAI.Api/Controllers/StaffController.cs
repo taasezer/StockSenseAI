@@ -34,6 +34,8 @@ namespace StockSenseAI.Api.Controllers
                     u.Id,
                     u.Username,
                     u.EmployeeCode,
+                    u.Email,
+                    u.PhoneNumber,
                     TaskCount = _context.EmployeeTasks.Count(t => t.AssignedUserId == u.Id && t.Status != "Completed")
                 })
                 .ToListAsync();

@@ -29,7 +29,7 @@ public class AuthController : ControllerBase
     public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
         try {
-            var result = await _authService.RegisterAsync(dto.Username, dto.Password, dto.SupplierCode);
+            var result = await _authService.RegisterAsync(dto.Username, dto.Password, dto.SupplierCode, dto.Email, dto.PhoneNumber);
             return result ? Ok("User registered successfully") : BadRequest("Registration failed");
         } catch (Exception ex) {
             return BadRequest(new { message = ex.Message });

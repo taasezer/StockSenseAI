@@ -8,6 +8,8 @@ const Register = () => {
   const [confirmPassword, setConfirmPassword] = useState('')
   const [isEmployee, setIsEmployee] = useState(false)
   const [supplierCode, setSupplierCode] = useState('')
+  const [email, setEmail] = useState('')
+  const [phone, setPhone] = useState('')
   
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -30,6 +32,8 @@ const Register = () => {
       const payload: any = {
         username,
         password,
+        email,
+        phoneNumber: phone,
         role: isEmployee ? 'Employee' : 'Supplier'
       }
 
@@ -138,6 +142,24 @@ const Register = () => {
             onChange={(e) => setUsername(e.target.value)}
             className="input-field"
             placeholder={t('login.username')}
+          />
+
+          <input
+            type="email"
+            required disabled={loading || success}
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            className="input-field"
+            placeholder="Email Address"
+          />
+
+          <input
+            type="tel"
+            disabled={loading || success}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="input-field"
+            placeholder="Phone Number (Optional)"
           />
 
           <input

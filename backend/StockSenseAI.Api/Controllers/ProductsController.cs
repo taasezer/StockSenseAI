@@ -33,7 +33,7 @@ public class ProductsController : ControllerBase
         return product == null ? NotFound() : Ok(product);
     }
 
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Roles = "Admin,Supplier")]
     [HttpPost]
     public async Task<IActionResult> Create([FromBody] ProductDto productDto)
     {
@@ -42,7 +42,7 @@ public class ProductsController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = product.Id }, product);
     }
 
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Roles = "Admin,Supplier")]
     [HttpPut("{id}")]
     public async Task<IActionResult> Update(int id, [FromBody] ProductDto productDto)
     {
@@ -52,7 +52,7 @@ public class ProductsController : ControllerBase
         return Ok(product);
     }
 
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Roles = "Admin,Supplier")]
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {

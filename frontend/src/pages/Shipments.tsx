@@ -27,7 +27,8 @@ const Shipments = () => {
     destinationCountryCode: 'TR',
     destinationRegionCode: '01',
     destinationCity: '',
-    destinationAddress: ''
+    destinationAddress: '',
+    trackingNumber: ''
   })
 
   useEffect(() => {
@@ -161,6 +162,11 @@ const Shipments = () => {
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Expected Arrival</label>
                 <input required type="date" className="input-field" value={newShipment.expectedArrival} onChange={e => setNewShipment({...newShipment, expectedArrival: e.target.value})} />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Tracking Number</label>
+                <input required type="text" placeholder="e.g. TR-01-XYZ123 (Leave empty to auto-generate)" className="input-field" value={newShipment.trackingNumber} onChange={e => setNewShipment({...newShipment, trackingNumber: e.target.value})} />
               </div>
 
               <hr style={{ borderColor: 'var(--border-color)', margin: '8px 0' }} />

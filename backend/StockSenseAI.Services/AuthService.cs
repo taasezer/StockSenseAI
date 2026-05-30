@@ -34,7 +34,7 @@ public class AuthService : IAuthService
         return GenerateJwtToken(user);
     }
 
-    public async Task<bool> RegisterAsync(string username, string password, string? supplierCode = null)
+    public async Task<bool> RegisterAsync(string username, string password, string? supplierCode = null, string? email = null, string? phoneNumber = null)
     {
         var existingUser = await _userRepository.GetByUsernameAsync(username);
         if (existingUser != null)
@@ -44,7 +44,9 @@ public class AuthService : IAuthService
         {
             Username = username,
             PasswordHash = BCrypt.Net.BCrypt.HashPassword(password),
-            Role = "User"
+            Role = "User",
+            Email = email,
+            PhoneNumber = phoneNumber
         };
 
         if (string.IsNullOrEmpty(supplierCode))

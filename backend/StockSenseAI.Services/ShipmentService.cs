@@ -55,7 +55,9 @@ public class ShipmentService : IShipmentService
         var country = !string.IsNullOrEmpty(dto.DestinationCountryCode) ? dto.DestinationCountryCode.ToUpper() : "TR";
         var region = !string.IsNullOrEmpty(dto.DestinationRegionCode) ? dto.DestinationRegionCode : "01";
         var randomSuffix = Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
-        var trackingNumber = $"{country}-{region}-{randomSuffix}";
+        var trackingNumber = !string.IsNullOrWhiteSpace(dto.TrackingNumber) 
+            ? dto.TrackingNumber 
+            : $"{country}-{region}-{randomSuffix}";
 
         var shipment = new Shipment
         {

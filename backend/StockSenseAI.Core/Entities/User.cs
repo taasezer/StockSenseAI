@@ -9,4 +9,6 @@ public class User
     public int? SupplierId { get; set; }
     public Supplier? Supplier { get; set; }
     public string? EmployeeCode { get; set; }
+    public string? Email { get; set; }
+    public string? PhoneNumber { get; set; }
 }

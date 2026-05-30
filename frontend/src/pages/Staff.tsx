@@ -6,6 +6,8 @@ interface StaffMember {
   username: string
   employeeCode: string
   taskCount: number
+  email?: string
+  phoneNumber?: string
 }
 
 interface EmployeeTask {
@@ -110,9 +112,23 @@ const Staff = () => {
             <div style={{ display: 'flex', flexDirection: 'column' }}>
               {staff.map(member => (
                 <div key={member.id} style={{ padding: '16px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <div style={{ fontWeight: '500', color: '#fff' }}>{member.username}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--brand-red)', fontFamily: 'monospace' }}>{member.employeeCode}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                    <div style={{ position: 'relative', cursor: 'help' }} className="staff-tooltip-container">
+                      <div style={{ fontWeight: '500', color: '#fff' }}>{member.username}</div>
+                      <div style={{ fontSize: '12px', color: 'var(--brand-red)', fontFamily: 'monospace' }}>{member.employeeCode}</div>
+                      
+                      {/* Hover Tooltip */}
+                      <div className="staff-tooltip" style={{ 
+                        position: 'absolute', top: '100%', left: 0, marginTop: '8px',
+                        backgroundColor: 'var(--bg-panel)', padding: '12px', borderRadius: '8px',
+                        border: '1px solid var(--border-color)', boxShadow: '0 4px 12px rgba(0,0,0,0.5)',
+                        zIndex: 10, width: 'max-content', display: 'none', flexDirection: 'column', gap: '4px'
+                      }}>
+                        <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Contact Info</div>
+                        <div style={{ fontSize: '13px', color: '#fff' }}>Email: {member.email || 'N/A'}</div>
+                        <div style={{ fontSize: '13px', color: '#fff' }}>Phone: {member.phoneNumber || 'N/A'}</div>
+                      </div>
+                    </div>
                   </div>
                   <div style={{ fontSize: '12px', color: 'var(--text-muted)', backgroundColor: 'var(--bg-dark)', padding: '4px 8px', borderRadius: '4px' }}>
                     {member.taskCount} tasks pending
