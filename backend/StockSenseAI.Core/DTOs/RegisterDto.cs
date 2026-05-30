@@ -7,4 +7,5 @@ public class RegisterDto
     public string? SupplierCode { get; set; } // Boşsa yeni tedarikçi, doluysa çalışan girişi
     public string? Email { get; set; }
     public string? PhoneNumber { get; set; }
+    public string? Address { get; set; }
 }

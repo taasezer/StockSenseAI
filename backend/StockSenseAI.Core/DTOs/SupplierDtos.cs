@@ -14,6 +14,7 @@ public class SupplierResponseDto
 {
     public int Id { get; set; }
     public string Name { get; set; } = string.Empty;
+    public string SupplierCode { get; set; } = string.Empty;
     public string? ContactEmail { get; set; }
     public string? ContactPhone { get; set; }
     public string? Address { get; set; }
@@ -21,6 +22,7 @@ public class SupplierResponseDto
     public bool IsActive { get; set; }
     public DateTime CreatedAt { get; set; }
     public int ProductCount { get; set; }
+    public List<string> ProductNames { get; set; } = new();
 }
 
 public class ShipmentDto

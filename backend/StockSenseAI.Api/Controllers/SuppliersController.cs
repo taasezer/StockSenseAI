@@ -60,4 +60,28 @@ public class SuppliersController : ControllerBase
         var shipments = await _supplierService.GetSupplierShipmentsAsync(id);
         return Ok(shipments);
     }
+
+    [HttpPost("{id}/message")]
+    public async Task<IActionResult> SendMessage(int id, [FromBody] SendMessageDto dto, [FromServices] StockSenseAI.Infrastructure.AppDbContext dbContext, [FromServices] INotificationService notificationService, [FromServices] ICurrentUserService currentUserService)
+    {
+        var senderSupplierId = currentUserService.SupplierId;
+        var senderSupplier = await dbContext.Suppliers.FindAsync(senderSupplierId);
+        var senderName = senderSupplier?.Name ?? "Admin";
+
+        // Find users of target supplier
+        var targetUsers = dbContext.Users.Where(u => u.SupplierId == id).ToList();
+        if (!targetUsers.Any()) return NotFound("No users found for this supplier.");
+
+        foreach (var user in targetUsers)
+        {
+            await notificationService.CreateNotificationAsync(user.Id, $"Message from {senderName}: {dto.Message}");
+        }
+
+        return Ok(new { message = "Message sent successfully" });
+    }
+}
+
+public class SendMessageDto
+{
+    public string Message { get; set; } = string.Empty;
 }

@@ -57,7 +57,8 @@ public class BarcodeService : IBarcodeService
 
         if (barcodeData.StartsWith("STOCK:"))
         {
-            var idPart = barcodeData.Replace("STOCK:", "");
+            var parts = barcodeData.Split('-');
+            var idPart = parts[0].Replace("STOCK:", "");
             if (int.TryParse(idPart, out var id))
                 productId = id;
         }
@@ -206,7 +207,7 @@ public class BarcodeService : IBarcodeService
 
     private static string GenerateBarcodeData(int productId, string? sku)
     {
-        return $"STOCK:{productId}";
+        return $"STOCK:{productId}-SKU:{sku ?? "UNKNOWN"}";
     }
 
     private static string GenerateQRCode(string data, int pixelsPerModule)

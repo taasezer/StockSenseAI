@@ -10,6 +10,7 @@ const Register = () => {
   const [supplierCode, setSupplierCode] = useState('')
   const [email, setEmail] = useState('')
   const [phone, setPhone] = useState('')
+  const [address, setAddress] = useState('')
   
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -34,6 +35,7 @@ const Register = () => {
         password,
         email,
         phoneNumber: phone,
+        address: !isEmployee ? address : undefined,
         role: isEmployee ? 'Employee' : 'Supplier'
       }
 
@@ -161,6 +163,18 @@ const Register = () => {
             className="input-field"
             placeholder="Phone Number (Optional)"
           />
+
+          {!isEmployee && (
+            <textarea
+              required
+              disabled={loading || success}
+              value={address}
+              onChange={(e) => setAddress(e.target.value)}
+              className="input-field"
+              placeholder="Warehouse Location / Full Address"
+              rows={3}
+            />
+          )}
 
           <input
             type="password"

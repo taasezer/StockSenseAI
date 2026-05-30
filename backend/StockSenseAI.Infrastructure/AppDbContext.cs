@@ -19,7 +19,8 @@ namespace StockSenseAI.Infrastructure
         public DbSet<Supplier> Suppliers { get; set; } = null!;
         public DbSet<Shipment> Shipments { get; set; } = null!;
         public DbSet<AlertSettings> AlertSettings { get; set; }
-    public DbSet<Notification> Notifications { get; set; } = null!;
+        public DbSet<Notification> Notifications { get; set; } = null!;
+        public DbSet<SupplierMessage> SupplierMessages { get; set; } = null!;
         public DbSet<StockAlert> StockAlerts { get; set; } = null!;
         public DbSet<Warehouse> Warehouses { get; set; } = null!;
         public DbSet<WarehouseStock> WarehouseStocks { get; set; } = null!;
@@ -113,6 +114,25 @@ namespace StockSenseAI.Infrastructure
             // Ignore computed property
             modelBuilder.Entity<Product>()
                 .Ignore(p => p.IsLowStock);
+
+            // SupplierMessage relationships
+            modelBuilder.Entity<SupplierMessage>()
+                .HasOne(m => m.SenderSupplier)
+                .WithMany()
+                .HasForeignKey(m => m.SenderSupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SupplierMessage>()
+                .HasOne(m => m.ReceiverSupplier)
+                .WithMany()
+                .HasForeignKey(m => m.ReceiverSupplierId)
+                .OnDelete(DeleteBehavior.Restrict);
+
+            modelBuilder.Entity<SupplierMessage>()
+                .HasOne(m => m.SenderUser)
+                .WithMany()
+                .HasForeignKey(m => m.SenderUserId)
+                .OnDelete(DeleteBehavior.Restrict);
 
             // GLOBAL QUERY FILTERS - Data Isolation
             var supplierId = _currentUserService?.SupplierId ?? 0;

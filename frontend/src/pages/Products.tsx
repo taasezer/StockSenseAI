@@ -286,7 +286,12 @@ const Products = () => {
                 <tr key={product.id} style={{ borderBottom: index < products.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
                   <td style={{ padding: '16px' }}>
                     {product.imageUrl ? (
-                      <img src={`${import.meta.env.VITE_API_URL}${product.imageUrl}`} alt={product.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
+                      <img 
+                        src={`${import.meta.env.VITE_API_URL}${product.imageUrl}`} 
+                        alt={product.name} 
+                        onError={(e) => { (e.target as HTMLImageElement).src = 'https://via.placeholder.com/40?text=No+Img' }}
+                        style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-color)' }} 
+                      />
                     ) : (
                       <div style={{ width: '40px', height: '40px', backgroundColor: 'var(--bg-dark)', borderRadius: '4px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '10px' }}>No Img</div>
                     )}

@@ -123,6 +123,7 @@ app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
 app.MapHub<ProductHub>("/productHub");
+app.MapHub<ChatHub>("/chatHub");
 
 // Health endpoint
 app.MapGet("/health", () => "Healthy");

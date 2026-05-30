@@ -34,7 +34,7 @@ public class AuthService : IAuthService
         return GenerateJwtToken(user);
     }
 
-    public async Task<bool> RegisterAsync(string username, string password, string? supplierCode = null, string? email = null, string? phoneNumber = null)
+    public async Task<bool> RegisterAsync(string username, string password, string? supplierCode = null, string? email = null, string? phoneNumber = null, string? address = null)
     {
         var existingUser = await _userRepository.GetByUsernameAsync(username);
         if (existingUser != null)
@@ -55,7 +55,10 @@ public class AuthService : IAuthService
             var newSupplier = new Supplier
             {
                 Name = username + " Company",
-                SupplierCode = "SUP-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper()
+                SupplierCode = "SUP-" + Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper(),
+                Address = address,
+                ContactEmail = email,
+                ContactPhone = phoneNumber
             };
 
             await _context.Suppliers.AddAsync(newSupplier);

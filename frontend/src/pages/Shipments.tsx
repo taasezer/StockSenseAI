@@ -112,7 +112,16 @@ const Shipments = () => {
               {shipments.map(s => (
                 <tr key={s.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                   <td style={{ padding: '12px 16px' }}>
-                    <div style={{ fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--brand-red)' }}>{s.trackingNumber}</div>
+                    <div 
+                      style={{ fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--brand-red)', cursor: 'pointer' }}
+                      title="Click to copy tracking number"
+                      onClick={() => {
+                        navigator.clipboard.writeText(s.trackingNumber);
+                        alert(`Tracking number ${s.trackingNumber} copied to clipboard!`);
+                      }}
+                    >
+                      {s.trackingNumber}
+                    </div>
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ color: '#fff' }}>{s.productName}</div>
@@ -162,11 +171,6 @@ const Shipments = () => {
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Expected Arrival</label>
                 <input required type="date" className="input-field" value={newShipment.expectedArrival} onChange={e => setNewShipment({...newShipment, expectedArrival: e.target.value})} />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Tracking Number</label>
-                <input required type="text" placeholder="e.g. TR-01-XYZ123 (Leave empty to auto-generate)" className="input-field" value={newShipment.trackingNumber} onChange={e => setNewShipment({...newShipment, trackingNumber: e.target.value})} />
               </div>
 
               <hr style={{ borderColor: 'var(--border-color)', margin: '8px 0' }} />

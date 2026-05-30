@@ -34,6 +34,10 @@ public class ProductService : IProductService
     public async Task<Product> CreateAsync(ProductDto productDto)
     {
         var product = _mapper.Map<Product>(productDto);
+        if (string.IsNullOrWhiteSpace(product.Sku))
+        {
+            product.Sku = $"PRD-{Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper()}";
+        }
         return await _productRepository.CreateAsync(product);
     }
 

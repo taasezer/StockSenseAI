@@ -38,7 +38,7 @@ public class ShipmentsController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Policy = "AdminOnly")]
+    [Authorize(Roles = "Admin,Supplier")]
     public async Task<IActionResult> Create([FromBody] ShipmentDto dto)
     {
         var shipment = await _shipmentService.CreateAsync(dto);

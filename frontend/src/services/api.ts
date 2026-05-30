@@ -22,6 +22,13 @@ export const productHubConnection = new signalR.HubConnectionBuilder()
     .withAutomaticReconnect()
     .build()
 
+export const chatHubConnection = new signalR.HubConnectionBuilder()
+    .withUrl(`${API_URL}/chatHub`, {
+        accessTokenFactory: () => localStorage.getItem('token') || ''
+    })
+    .withAutomaticReconnect()
+    .build()
+
 let isSignalRConnected = false
 
 export const startSignalRConnection = async () => {

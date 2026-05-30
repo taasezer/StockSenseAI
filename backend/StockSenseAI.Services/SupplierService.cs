@@ -96,13 +96,15 @@ public class SupplierService : ISupplierService
         {
             Id = supplier.Id,
             Name = supplier.Name,
+            SupplierCode = supplier.SupplierCode,
             ContactEmail = supplier.ContactEmail,
             ContactPhone = supplier.ContactPhone,
             Address = supplier.Address,
             AverageLeadTimeDays = supplier.AverageLeadTimeDays,
             IsActive = supplier.IsActive,
             CreatedAt = supplier.CreatedAt,
-            ProductCount = supplier.Products?.Count ?? 0
+            ProductCount = supplier.Products?.Count ?? 0,
+            ProductNames = supplier.Products?.Select(p => p.Name).ToList() ?? new List<string>()
         };
     }
 }

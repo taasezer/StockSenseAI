@@ -15,6 +15,8 @@ interface Supplier {
     averageLeadTimeDays: number
     isActive: boolean
     productCount: number
+    supplierCode?: string
+    productNames?: string[]
 }
 
 interface Shipment {
@@ -59,6 +61,9 @@ const Suppliers = () => {
         expectedArrival: '',
         trackingNumber: ''
     })
+    const [searchTerm, setSearchTerm] = useState('')
+    const [messagingSupplier, setMessagingSupplier] = useState<Supplier | null>(null)
+    const [messageText, setMessageText] = useState('')
     const navigate = useNavigate()
 
     const fetchData = async () => {
@@ -143,6 +148,28 @@ const Suppliers = () => {
         }
     }
 
+    const handleSendMessage = async (e: React.FormEvent) => {
+        e.preventDefault()
+        if (!messagingSupplier || !messageText) return
+        try {
+            const token = localStorage.getItem('token')
+            const res = await fetch(`${import.meta.env.VITE_API_URL}/api/suppliers/${messagingSupplier.id}/message`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                body: JSON.stringify({ message: messageText })
+            })
+            if (res.ok) {
+                alert('Message sent successfully! They will receive a notification.')
+                setMessagingSupplier(null)
+                setMessageText('')
+            } else {
+                alert('Failed to send message.')
+            }
+        } catch (err) { console.error(err) }
+    }
+
+    const filteredSuppliers = suppliers.filter(s => s.name.toLowerCase().includes(searchTerm.toLowerCase()) || (s.supplierCode && s.supplierCode.toLowerCase().includes(searchTerm.toLowerCase())))
+
     const getStatusBadge = (status: string) => {
         const styles: Record<string, React.CSSProperties> = {
             Pending: { backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' },
@@ -182,7 +209,17 @@ const Suppliers = () => {
             {activeTab === 'suppliers' && (
                 <div className="stat-card" style={{ padding: 0, overflow: 'hidden' }}>
                     <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-dark)' }}>
-                        <h2 style={{ fontSize: '18px', fontWeight: '600' }}>Suppliers</h2>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                            <h2 style={{ fontSize: '18px', fontWeight: '600', margin: 0 }}>Suppliers</h2>
+                            <input 
+                                type="text" 
+                                placeholder="Search by name or code..." 
+                                className="input-field" 
+                                style={{ width: '250px', margin: 0, padding: '6px 12px' }}
+                                value={searchTerm}
+                                onChange={(e) => setSearchTerm(e.target.value)}
+                            />
+                        </div>
                         <button className="btn-primary" style={{ width: 'auto' }} onClick={() => { setShowForm(true); setEditingSupplier(null); setFormData({ name: '', contactEmail: '', contactPhone: '', address: '', averageLeadTimeDays: 7, isActive: true }); }}>
                             + Add Supplier
                         </button>
@@ -190,30 +227,38 @@ const Suppliers = () => {
                     <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--text-main)' }}>
                         <thead>
                             <tr style={{ backgroundColor: 'var(--bg-dark)', borderBottom: '1px solid var(--border-color)' }}>
-                                <th style={{ padding: '12px 16px', textAlign: 'left' }}>Name</th>
-                                <th style={{ padding: '12px 16px', textAlign: 'left' }}>Contact</th>
-                                <th style={{ padding: '12px 16px', textAlign: 'center' }}>Lead Time</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left' }}>Supplier</th>
+                                <th style={{ padding: '12px 16px', textAlign: 'left' }}>Location & Contact</th>
                                 <th style={{ padding: '12px 16px', textAlign: 'center' }}>Products</th>
                                 <th style={{ padding: '12px 16px', textAlign: 'center' }}>Status</th>
                                 <th style={{ padding: '12px 16px', textAlign: 'center' }}>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {suppliers.map(supplier => (
+                            {filteredSuppliers.map(supplier => (
                                 <tr key={supplier.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
-                                    <td style={{ padding: '12px 16px', fontWeight: '500' }}>{supplier.name}</td>
-                                    <td style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '14px' }}>
-                                        {supplier.contactEmail && <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> {supplier.contactEmail}</div>}
-                                        {supplier.contactPhone && <div style={{display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px'}}><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg> {supplier.contactPhone}</div>}
+                                    <td style={{ padding: '12px 16px' }}>
+                                        <div style={{ fontWeight: '500', color: '#fff' }}>{supplier.name}</div>
+                                        {supplier.supplierCode && <div style={{ fontSize: '12px', color: 'var(--brand-red)', fontFamily: 'monospace' }}>{supplier.supplierCode}</div>}
                                     </td>
-                                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>{supplier.averageLeadTimeDays} days</td>
-                                    <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>{supplier.productCount}</td>
+                                    <td style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '13px' }}>
+                                        {supplier.address && <div style={{ marginBottom: '4px' }}>📍 {supplier.address}</div>}
+                                        {supplier.contactEmail && <div>✉️ {supplier.contactEmail}</div>}
+                                        {supplier.contactPhone && <div>📞 {supplier.contactPhone}</div>}
+                                    </td>
+                                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                        <div style={{ fontWeight: '600', color: '#fff' }}>{supplier.productCount} Items</div>
+                                        <div style={{ fontSize: '11px', color: 'var(--text-muted)', maxWidth: '150px', margin: '0 auto', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={supplier.productNames?.join(', ')}>
+                                            {supplier.productNames?.join(', ') || '-'}
+                                        </div>
+                                    </td>
                                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                                         <span style={{ padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 'bold', backgroundColor: supplier.isActive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(220, 38, 38, 0.1)', color: supplier.isActive ? '#10b981' : 'var(--brand-red)' }}>
                                             {supplier.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
                                     <td style={{ padding: '12px 16px', textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                        <button className="btn-outline" onClick={() => setMessagingSupplier(supplier)} style={{ padding: '4px 8px', fontSize: '12px', width: 'auto', borderColor: '#3b82f6', color: '#3b82f6' }}>✉️ Message</button>
                                         <button className="btn-outline" onClick={() => { setEditingSupplier(supplier); setFormData({ name: supplier.name, contactEmail: supplier.contactEmail || '', contactPhone: supplier.contactPhone || '', address: supplier.address || '', averageLeadTimeDays: supplier.averageLeadTimeDays, isActive: supplier.isActive }); setShowForm(true); }} style={{ padding: '4px 8px', fontSize: '12px', width: 'auto' }}>Edit</button>
                                         <button className="btn-outline" onClick={() => handleDeleteSupplier(supplier.id)} style={{ padding: '4px 8px', fontSize: '12px', width: 'auto', borderColor: 'var(--brand-red)', color: 'var(--brand-red)' }}>Delete</button>
                                     </td>
@@ -309,6 +354,29 @@ const Suppliers = () => {
                             <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
                                 <button type="button" className="btn-outline" onClick={() => setShowShipmentForm(false)} style={{ flex: 1 }}>Cancel</button>
                                 <button type="submit" className="btn-primary" style={{ flex: 1 }}>Create</button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Message Modal */}
+            {messagingSupplier && (
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div className="stat-card" style={{ width: '100%', maxWidth: '400px' }}>
+                        <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>Message {messagingSupplier.name}</h3>
+                        <form onSubmit={handleSendMessage} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <textarea 
+                                className="input-field" 
+                                placeholder="Type your message here... They will receive it as a notification." 
+                                rows={4} 
+                                value={messageText} 
+                                onChange={e => setMessageText(e.target.value)} 
+                                required 
+                            />
+                            <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                                <button type="button" className="btn-outline" onClick={() => setMessagingSupplier(null)} style={{ flex: 1 }}>Cancel</button>
+                                <button type="submit" className="btn-primary" style={{ flex: 1 }}>Send Message</button>
                             </div>
                         </form>
                     </div>
