@@ -129,6 +129,9 @@ using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
     db.Database.EnsureCreated();
+    try {
+        db.Database.ExecuteSqlRaw("ALTER TABLE \"Users\" ADD COLUMN IF NOT EXISTS \"EmployeeCode\" text;");
+    } catch { }
 }
 
 Console.WriteLine("🚀 StockSenseAI API started on http://localhost:5000");

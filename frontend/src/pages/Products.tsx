@@ -204,7 +204,7 @@ const Products = () => {
               No products found in your database
             </div>
             <div style={{ fontSize: '14px', color: 'var(--text-muted)' }}>
-              Add some products to populate your isolated tenant space.
+              Add some products to populate your organization.
             </div>
           </div>
         ) : (
@@ -216,7 +216,7 @@ const Products = () => {
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Price</th>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Category</th>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Stock</th>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Tenant ID</th>
+                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Supplier ID</th>
               </tr>
             </thead>
             <tbody>

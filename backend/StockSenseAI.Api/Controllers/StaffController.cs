@@ -25,7 +25,7 @@ namespace StockSenseAI.Api.Controllers
         public async Task<IActionResult> GetStaff()
         {
             var supplierId = _currentUserService.SupplierId;
-            if (supplierId == null) return Unauthorized();
+            if (supplierId == 0) return Unauthorized();
 
             var staff = await _context.Users
                 .Where(u => u.SupplierId == supplierId && u.Role == "Staff")
@@ -45,7 +45,7 @@ namespace StockSenseAI.Api.Controllers
         public async Task<IActionResult> GetAllTasks()
         {
             var supplierId = _currentUserService.SupplierId;
-            if (supplierId == null) return Unauthorized();
+            if (supplierId == 0) return Unauthorized();
 
             var tasks = await _context.EmployeeTasks
                 .Include(t => t.AssignedUser)
@@ -71,7 +71,7 @@ namespace StockSenseAI.Api.Controllers
         public async Task<IActionResult> AssignTask([FromBody] AssignTaskRequest request)
         {
             var supplierId = _currentUserService.SupplierId;
-            if (supplierId == null) return Unauthorized();
+            if (supplierId == 0) return Unauthorized();
 
             var user = await _context.Users.FirstOrDefaultAsync(u => u.EmployeeCode == request.EmployeeCode && u.SupplierId == supplierId);
             if (user == null) return BadRequest("Invalid Employee Code.");
@@ -81,7 +81,7 @@ namespace StockSenseAI.Api.Controllers
                 Title = request.Title,
                 Description = request.Description,
                 AssignedUserId = user.Id,
-                SupplierId = supplierId.Value,
+                SupplierId = supplierId,
                 Status = "Pending",
                 CreatedAt = DateTime.UtcNow
             };

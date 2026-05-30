@@ -54,7 +54,7 @@ const Tasks = () => {
 
   const handleDrop = async (e: React.DragEvent, status: 'Pending' | 'InProgress' | 'Completed') => {
     const id = parseInt(e.dataTransfer.getData('taskId'))
-    
+
     // Optimsitic UI update
     setTasks(prev => prev.map(t => t.id === id ? { ...t, status } : t))
 
@@ -79,7 +79,7 @@ const Tasks = () => {
     const columnTasks = tasks.filter(t => t.status === status)
 
     return (
-      <div 
+      <div
         className="kanban-column glass-panel"
         onDrop={(e) => handleDrop(e, status)}
         onDragOver={handleDragOver}
@@ -87,8 +87,8 @@ const Tasks = () => {
         <h3 className={`column-title ${colorClass}`}>{title} <span>{columnTasks.length}</span></h3>
         <div className="task-list">
           {columnTasks.map(task => (
-            <div 
-              key={task.id} 
+            <div
+              key={task.id}
               className="task-card"
               draggable
               onDragStart={(e) => handleDragStart(e, task.id)}

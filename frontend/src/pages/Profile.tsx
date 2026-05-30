@@ -93,7 +93,7 @@ const Profile = () => {
                                 </span>
                             </div>
                             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '8px' }}>
-                                Share this code with employees so they can join your tenant.
+                                Share this code with employees so they can join your organization.
                             </div>
                         </div>
                     )}
@@ -110,7 +110,7 @@ const Profile = () => {
                     )}
                     
                     <div style={{ backgroundColor: 'var(--bg-dark)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'block', marginBottom: '4px' }}>Supplier ID (Tenant)</span>
+                        <span style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'block', marginBottom: '4px' }}>Supplier ID</span>
                         <span style={{ fontSize: '16px', fontWeight: '600', fontFamily: 'monospace' }}>
                             {profile?.supplierId ? `SUP-${profile.supplierId.padStart(4, '0')}` : 'System Admin'}
                         </span>

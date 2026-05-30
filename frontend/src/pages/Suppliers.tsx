@@ -145,51 +145,48 @@ const Suppliers = () => {
 
     const getStatusBadge = (status: string) => {
         const styles: Record<string, React.CSSProperties> = {
-            Pending: { backgroundColor: '#fbbf24', color: '#1f2937' },
-            InTransit: { backgroundColor: '#3b82f6', color: 'white' },
-            Delivered: { backgroundColor: '#10b981', color: 'white' },
-            Delayed: { backgroundColor: '#f97316', color: 'white' },
-            Cancelled: { backgroundColor: '#6b7280', color: 'white' }
+            Pending: { backgroundColor: 'rgba(245, 158, 11, 0.1)', color: '#f59e0b' },
+            InTransit: { backgroundColor: 'rgba(59, 130, 246, 0.1)', color: '#3b82f6' },
+            Delivered: { backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#10b981' },
+            Delayed: { backgroundColor: 'rgba(249, 115, 22, 0.1)', color: '#f97316' },
+            Cancelled: { backgroundColor: 'rgba(107, 114, 128, 0.1)', color: 'var(--text-muted)' }
         }
-        return { padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: '600', ...styles[status] }
+        return { padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 'bold', ...styles[status] }
     }
 
     if (loading) {
-        return <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>Loading...</div>
+        return <div className="spinner" style={{ margin: '40px auto' }}></div>
     }
 
     return (
         <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h1 style={{ fontSize: '28px', fontWeight: 'bold', color: '#1f2937' }}>🚚 Supply Chain Management</h1>
-                <button onClick={() => navigate('/dashboard')} style={{ padding: '10px 20px', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
-                    ← Dashboard
-                </button>
+                <h1 className="page-title" style={{ margin: 0 }}>🚚 Supply Chain Management</h1>
             </div>
 
             {/* Tabs */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '24px' }}>
-                <button onClick={() => setActiveTab('suppliers')} style={{ padding: '10px 20px', backgroundColor: activeTab === 'suppliers' ? '#4f46e5' : '#e5e7eb', color: activeTab === 'suppliers' ? 'white' : '#374151', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                <button onClick={() => setActiveTab('suppliers')} className={activeTab === 'suppliers' ? "btn-primary" : "btn-outline"} style={{ width: 'auto' }}>
                     Suppliers ({suppliers.length})
                 </button>
-                <button onClick={() => setActiveTab('shipments')} style={{ padding: '10px 20px', backgroundColor: activeTab === 'shipments' ? '#4f46e5' : '#e5e7eb', color: activeTab === 'shipments' ? 'white' : '#374151', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: '600' }}>
+                <button onClick={() => setActiveTab('shipments')} className={activeTab === 'shipments' ? "btn-primary" : "btn-outline"} style={{ width: 'auto' }}>
                     Shipments ({shipments.length})
                 </button>
             </div>
 
             {/* Suppliers Tab */}
             {activeTab === 'suppliers' && (
-                <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-                    <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="stat-card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-dark)' }}>
                         <h2 style={{ fontSize: '18px', fontWeight: '600' }}>Suppliers</h2>
-                        <button onClick={() => { setShowForm(true); setEditingSupplier(null); setFormData({ name: '', contactEmail: '', contactPhone: '', address: '', averageLeadTimeDays: 7, isActive: true }); }} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                        <button className="btn-primary" style={{ width: 'auto' }} onClick={() => { setShowForm(true); setEditingSupplier(null); setFormData({ name: '', contactEmail: '', contactPhone: '', address: '', averageLeadTimeDays: 7, isActive: true }); }}>
                             + Add Supplier
                         </button>
                     </div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--text-main)' }}>
                         <thead>
-                            <tr style={{ backgroundColor: '#f9fafb' }}>
+                            <tr style={{ backgroundColor: 'var(--bg-dark)', borderBottom: '1px solid var(--border-color)' }}>
                                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Name</th>
                                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Contact</th>
                                 <th style={{ padding: '12px 16px', textAlign: 'center' }}>Lead Time</th>
@@ -200,22 +197,22 @@ const Suppliers = () => {
                         </thead>
                         <tbody>
                             {suppliers.map(supplier => (
-                                <tr key={supplier.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                <tr key={supplier.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                     <td style={{ padding: '12px 16px', fontWeight: '500' }}>{supplier.name}</td>
-                                    <td style={{ padding: '12px 16px', color: '#6b7280', fontSize: '14px' }}>
+                                    <td style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '14px' }}>
                                         {supplier.contactEmail && <div>📧 {supplier.contactEmail}</div>}
                                         {supplier.contactPhone && <div>📞 {supplier.contactPhone}</div>}
                                     </td>
                                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>{supplier.averageLeadTimeDays} days</td>
                                     <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>{supplier.productCount}</td>
                                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                        <span style={{ padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', backgroundColor: supplier.isActive ? '#dcfce7' : '#fee2e2', color: supplier.isActive ? '#166534' : '#dc2626' }}>
+                                        <span style={{ padding: '4px 12px', borderRadius: '9999px', fontSize: '12px', fontWeight: 'bold', backgroundColor: supplier.isActive ? 'rgba(16, 185, 129, 0.1)' : 'rgba(220, 38, 38, 0.1)', color: supplier.isActive ? '#10b981' : 'var(--brand-red)' }}>
                                             {supplier.isActive ? 'Active' : 'Inactive'}
                                         </span>
                                     </td>
-                                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
-                                        <button onClick={() => { setEditingSupplier(supplier); setFormData({ name: supplier.name, contactEmail: supplier.contactEmail || '', contactPhone: supplier.contactPhone || '', address: supplier.address || '', averageLeadTimeDays: supplier.averageLeadTimeDays, isActive: supplier.isActive }); setShowForm(true); }} style={{ marginRight: '8px', padding: '4px 8px', backgroundColor: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Edit</button>
-                                        <button onClick={() => handleDeleteSupplier(supplier.id)} style={{ padding: '4px 8px', backgroundColor: '#ef4444', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Delete</button>
+                                    <td style={{ padding: '12px 16px', textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
+                                        <button className="btn-outline" onClick={() => { setEditingSupplier(supplier); setFormData({ name: supplier.name, contactEmail: supplier.contactEmail || '', contactPhone: supplier.contactPhone || '', address: supplier.address || '', averageLeadTimeDays: supplier.averageLeadTimeDays, isActive: supplier.isActive }); setShowForm(true); }} style={{ padding: '4px 8px', fontSize: '12px', width: 'auto' }}>Edit</button>
+                                        <button className="btn-outline" onClick={() => handleDeleteSupplier(supplier.id)} style={{ padding: '4px 8px', fontSize: '12px', width: 'auto', borderColor: 'var(--brand-red)', color: 'var(--brand-red)' }}>Delete</button>
                                     </td>
                                 </tr>
                             ))}
@@ -226,16 +223,16 @@ const Suppliers = () => {
 
             {/* Shipments Tab */}
             {activeTab === 'shipments' && (
-                <div style={{ backgroundColor: 'white', borderRadius: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
-                    <div style={{ padding: '16px 24px', borderBottom: '1px solid #e5e7eb', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div className="stat-card" style={{ padding: 0, overflow: 'hidden' }}>
+                    <div style={{ padding: '16px 24px', borderBottom: '1px solid var(--border-color)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: 'var(--bg-dark)' }}>
                         <h2 style={{ fontSize: '18px', fontWeight: '600' }}>Shipments</h2>
-                        <button onClick={() => setShowShipmentForm(true)} style={{ padding: '8px 16px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>
+                        <button className="btn-primary" style={{ width: 'auto' }} onClick={() => setShowShipmentForm(true)}>
                             + New Shipment
                         </button>
                     </div>
-                    <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <table style={{ width: '100%', borderCollapse: 'collapse', color: 'var(--text-main)' }}>
                         <thead>
-                            <tr style={{ backgroundColor: '#f9fafb' }}>
+                            <tr style={{ backgroundColor: 'var(--bg-dark)', borderBottom: '1px solid var(--border-color)' }}>
                                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Product</th>
                                 <th style={{ padding: '12px 16px', textAlign: 'left' }}>Supplier</th>
                                 <th style={{ padding: '12px 16px', textAlign: 'center' }}>Qty</th>
@@ -246,19 +243,19 @@ const Suppliers = () => {
                         </thead>
                         <tbody>
                             {shipments.map(shipment => (
-                                <tr key={shipment.id} style={{ borderBottom: '1px solid #e5e7eb' }}>
+                                <tr key={shipment.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                     <td style={{ padding: '12px 16px', fontWeight: '500' }}>{shipment.productName}</td>
-                                    <td style={{ padding: '12px 16px', color: '#6b7280' }}>{shipment.supplierName}</td>
+                                    <td style={{ padding: '12px 16px', color: 'var(--text-muted)' }}>{shipment.supplierName}</td>
                                     <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>+{shipment.quantity}</td>
                                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>{new Date(shipment.expectedArrival).toLocaleDateString()}</td>
                                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>
                                         <span style={getStatusBadge(shipment.status)}>{shipment.status}</span>
                                     </td>
-                                    <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                                    <td style={{ padding: '12px 16px', textAlign: 'center', display: 'flex', gap: '8px', justifyContent: 'center' }}>
                                         {(shipment.status === 'Pending' || shipment.status === 'InTransit') && (
                                             <>
-                                                <button onClick={() => handleDeliverShipment(shipment.id)} style={{ marginRight: '8px', padding: '4px 8px', backgroundColor: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>✓ Deliver</button>
-                                                <button onClick={() => handleCancelShipment(shipment.id)} style={{ padding: '4px 8px', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>Cancel</button>
+                                                <button className="btn-outline" onClick={() => handleDeliverShipment(shipment.id)} style={{ padding: '4px 8px', fontSize: '12px', width: 'auto', borderColor: '#10b981', color: '#10b981' }}>✓ Deliver</button>
+                                                <button className="btn-outline" onClick={() => handleCancelShipment(shipment.id)} style={{ padding: '4px 8px', fontSize: '12px', width: 'auto' }}>Cancel</button>
                                             </>
                                         )}
                                     </td>
@@ -271,18 +268,18 @@ const Suppliers = () => {
 
             {/* Supplier Form Modal */}
             {showForm && (
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '500px' }}>
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div className="stat-card" style={{ width: '100%', maxWidth: '500px' }}>
                         <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>{editingSupplier ? 'Edit Supplier' : 'Add Supplier'}</h3>
-                        <form onSubmit={handleSubmitSupplier}>
-                            <input type="text" placeholder="Supplier Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required style={{ width: '100%', padding: '10px', marginBottom: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-                            <input type="email" placeholder="Email" value={formData.contactEmail} onChange={e => setFormData({ ...formData, contactEmail: e.target.value })} style={{ width: '100%', padding: '10px', marginBottom: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-                            <input type="tel" placeholder="Phone" value={formData.contactPhone} onChange={e => setFormData({ ...formData, contactPhone: e.target.value })} style={{ width: '100%', padding: '10px', marginBottom: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-                            <input type="text" placeholder="Address" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} style={{ width: '100%', padding: '10px', marginBottom: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-                            <input type="number" placeholder="Lead Time (days)" value={formData.averageLeadTimeDays} onChange={e => setFormData({ ...formData, averageLeadTimeDays: parseInt(e.target.value) })} style={{ width: '100%', padding: '10px', marginBottom: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-                            <div style={{ display: 'flex', gap: '12px' }}>
-                                <button type="submit" style={{ flex: 1, padding: '10px', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Save</button>
-                                <button type="button" onClick={() => setShowForm(false)} style={{ flex: 1, padding: '10px', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
+                        <form onSubmit={handleSubmitSupplier} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <input className="input-field" type="text" placeholder="Supplier Name" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })} required />
+                            <input className="input-field" type="email" placeholder="Email" value={formData.contactEmail} onChange={e => setFormData({ ...formData, contactEmail: e.target.value })} />
+                            <input className="input-field" type="tel" placeholder="Phone" value={formData.contactPhone} onChange={e => setFormData({ ...formData, contactPhone: e.target.value })} />
+                            <input className="input-field" type="text" placeholder="Address" value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })} />
+                            <input className="input-field" type="number" placeholder="Lead Time (days)" value={formData.averageLeadTimeDays} onChange={e => setFormData({ ...formData, averageLeadTimeDays: parseInt(e.target.value) })} />
+                            <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                                <button type="button" className="btn-outline" onClick={() => setShowForm(false)} style={{ flex: 1 }}>Cancel</button>
+                                <button type="submit" className="btn-primary" style={{ flex: 1 }}>Save</button>
                             </div>
                         </form>
                     </div>
@@ -291,24 +288,24 @@ const Suppliers = () => {
 
             {/* Shipment Form Modal */}
             {showShipmentForm && (
-                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-                    <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '500px' }}>
+                <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+                    <div className="stat-card" style={{ width: '100%', maxWidth: '500px' }}>
                         <h3 style={{ marginBottom: '16px', fontSize: '18px', fontWeight: '600' }}>New Shipment</h3>
-                        <form onSubmit={handleSubmitShipment}>
-                            <select value={shipmentForm.productId} onChange={e => setShipmentForm({ ...shipmentForm, productId: parseInt(e.target.value) })} required style={{ width: '100%', padding: '10px', marginBottom: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }}>
+                        <form onSubmit={handleSubmitShipment} style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                            <select className="input-field" value={shipmentForm.productId} onChange={e => setShipmentForm({ ...shipmentForm, productId: parseInt(e.target.value) })} required>
                                 <option value="">Select Product</option>
                                 {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                             </select>
-                            <select value={shipmentForm.supplierId} onChange={e => setShipmentForm({ ...shipmentForm, supplierId: parseInt(e.target.value) })} required style={{ width: '100%', padding: '10px', marginBottom: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }}>
+                            <select className="input-field" value={shipmentForm.supplierId} onChange={e => setShipmentForm({ ...shipmentForm, supplierId: parseInt(e.target.value) })} required>
                                 <option value="">Select Supplier</option>
                                 {suppliers.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
                             </select>
-                            <input type="number" placeholder="Quantity" min="1" value={shipmentForm.quantity} onChange={e => setShipmentForm({ ...shipmentForm, quantity: parseInt(e.target.value) })} required style={{ width: '100%', padding: '10px', marginBottom: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-                            <input type="datetime-local" value={shipmentForm.expectedArrival} onChange={e => setShipmentForm({ ...shipmentForm, expectedArrival: e.target.value })} required style={{ width: '100%', padding: '10px', marginBottom: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-                            <input type="text" placeholder="Tracking Number (optional)" value={shipmentForm.trackingNumber} onChange={e => setShipmentForm({ ...shipmentForm, trackingNumber: e.target.value })} style={{ width: '100%', padding: '10px', marginBottom: '12px', border: '1px solid #ddd', borderRadius: '6px', boxSizing: 'border-box' }} />
-                            <div style={{ display: 'flex', gap: '12px' }}>
-                                <button type="submit" style={{ flex: 1, padding: '10px', backgroundColor: '#4f46e5', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Create</button>
-                                <button type="button" onClick={() => setShowShipmentForm(false)} style={{ flex: 1, padding: '10px', backgroundColor: '#6b7280', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer' }}>Cancel</button>
+                            <input className="input-field" type="number" placeholder="Quantity" min="1" value={shipmentForm.quantity} onChange={e => setShipmentForm({ ...shipmentForm, quantity: parseInt(e.target.value) })} required />
+                            <input className="input-field" type="datetime-local" value={shipmentForm.expectedArrival} onChange={e => setShipmentForm({ ...shipmentForm, expectedArrival: e.target.value })} required />
+                            <input className="input-field" type="text" placeholder="Tracking Number (optional)" value={shipmentForm.trackingNumber} onChange={e => setShipmentForm({ ...shipmentForm, trackingNumber: e.target.value })} />
+                            <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+                                <button type="button" className="btn-outline" onClick={() => setShowShipmentForm(false)} style={{ flex: 1 }}>Cancel</button>
+                                <button type="submit" className="btn-primary" style={{ flex: 1 }}>Create</button>
                             </div>
                         </form>
                     </div>

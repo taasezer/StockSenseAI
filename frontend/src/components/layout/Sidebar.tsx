@@ -21,6 +21,15 @@ const Sidebar = () => {
         navigate('/login');
     };
 
+    let role = '';
+    const token = localStorage.getItem('token');
+    if (token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]));
+            role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role || '';
+        } catch (e) {}
+    }
+
     if (role === 'Supplier') {
         menuItems.splice(2, 0, {
             path: '/staff',
