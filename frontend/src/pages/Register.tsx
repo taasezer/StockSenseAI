@@ -78,7 +78,7 @@ const Register = () => {
       <div className="auth-box">
         <div className="auth-logo">
           <h1>StockSense<span>AI</span></h1>
-          <p className="auth-subtitle">Initialize New Identity</p>
+          <p className="auth-subtitle">{t('register.subtitle')}</p>
         </div>
 
         {error && (
@@ -176,8 +176,8 @@ const Register = () => {
         </form>
 
         <div className="auth-links">
-          <span>Already have an account?</span>
-          <a href="/login">Log in here</a>
+          <span>{t('register.has_account')}</span>
+          <a href="/login">{t('register.login')}</a>
         </div>
       </div>
     </div>

@@ -38,6 +38,8 @@ builder.Services.AddScoped<IOpenAIService, OpenAIService>();
 builder.Services.AddScoped<IProductService, ProductService>();
 builder.Services.AddScoped<IAuthService, AuthService>();
 builder.Services.AddScoped<IAlertService, AlertService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddScoped<INotificationService, NotificationService>();
 builder.Services.AddScoped<ISupplierService, SupplierService>();
 builder.Services.AddScoped<IShipmentService, ShipmentService>();
 builder.Services.AddScoped<IReportService, ReportService>();
@@ -131,7 +133,21 @@ using (var scope = app.Services.CreateScope())
     db.Database.EnsureCreated();
     try {
         db.Database.ExecuteSqlRaw("ALTER TABLE \"Users\" ADD COLUMN IF NOT EXISTS \"EmployeeCode\" text;");
-    } catch { }
+        
+        // TEMPORARY: Clear test data to make it product level, runs only once
+        if (!System.IO.File.Exists(".data_cleared")) {
+            db.Database.ExecuteSqlRaw(@"
+                TRUNCATE TABLE ""EmployeeTasks"", ""ExternalOrderItems"", ""ExternalOrders"", ""WebhookLogs"", ""WebhookConfigs"", 
+                ""StockTransfers"", ""WarehouseStocks"", ""Warehouses"", ""StockAlerts"", ""AlertSettings"", 
+                ""Shipments"", ""Products"", ""Suppliers"", ""SalesHistories"" CASCADE;
+            ");
+            db.Database.ExecuteSqlRaw("DELETE FROM \"Users\" WHERE \"Username\" != 'admin';");
+            System.IO.File.WriteAllText(".data_cleared", "true");
+            Console.WriteLine("✅ Test data has been cleared successfully for production readiness.");
+        }
+    } catch (Exception ex) {
+        Console.WriteLine("Data clear error: " + ex.Message);
+    }
 }
 
 Console.WriteLine("🚀 StockSenseAI API started on http://localhost:5000");

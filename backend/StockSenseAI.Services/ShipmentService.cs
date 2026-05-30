@@ -9,10 +9,12 @@ namespace StockSenseAI.Services;
 public class ShipmentService : IShipmentService
 {
     private readonly AppDbContext _context;
+    private readonly ITaskService _taskService;
 
-    public ShipmentService(AppDbContext context)
+    public ShipmentService(AppDbContext context, ITaskService taskService)
     {
         _context = context;
+        _taskService = taskService;
     }
 
     public async Task<IEnumerable<ShipmentResponseDto>> GetAllAsync()
@@ -50,13 +52,23 @@ public class ShipmentService : IShipmentService
 
     public async Task<ShipmentResponseDto> CreateAsync(ShipmentDto dto)
     {
+        var country = !string.IsNullOrEmpty(dto.DestinationCountryCode) ? dto.DestinationCountryCode.ToUpper() : "TR";
+        var region = !string.IsNullOrEmpty(dto.DestinationRegionCode) ? dto.DestinationRegionCode : "01";
+        var randomSuffix = Guid.NewGuid().ToString("N").Substring(0, 6).ToUpper();
+        var trackingNumber = $"{country}-{region}-{randomSuffix}";
+
         var shipment = new Shipment
         {
             ProductId = dto.ProductId,
             SupplierId = dto.SupplierId,
             Quantity = dto.Quantity,
             ExpectedArrival = dto.ExpectedArrival,
-            TrackingNumber = dto.TrackingNumber,
+            OriginLocation = dto.OriginLocation,
+            DestinationCountryCode = country,
+            DestinationRegionCode = region,
+            DestinationCity = dto.DestinationCity,
+            DestinationAddress = dto.DestinationAddress,
+            TrackingNumber = trackingNumber,
             Notes = dto.Notes,
             Status = ShipmentStatus.Pending
         };
@@ -67,6 +79,14 @@ public class ShipmentService : IShipmentService
         // Reload with relationships
         await _context.Entry(shipment).Reference(s => s.Product).LoadAsync();
         await _context.Entry(shipment).Reference(s => s.Supplier).LoadAsync();
+
+        // Otomatik görev ata
+        await _taskService.AssignTaskAsync(
+            $"Sevkiyat İndirme ve Kabul",
+            $"Takip Kodu: {shipment.TrackingNumber}. {shipment.Quantity} adet {shipment.Product?.Name} teslim alınacak.",
+            shipment.Id,
+            shipment.SupplierId
+        );
 
         return MapToResponseDto(shipment);
     }
@@ -142,6 +162,11 @@ public class ShipmentService : IShipmentService
             ActualArrival = shipment.ActualArrival,
             Status = shipment.Status.ToString(),
             TrackingNumber = shipment.TrackingNumber,
+            OriginLocation = shipment.OriginLocation,
+            DestinationCountryCode = shipment.DestinationCountryCode,
+            DestinationRegionCode = shipment.DestinationRegionCode,
+            DestinationCity = shipment.DestinationCity,
+            DestinationAddress = shipment.DestinationAddress,
             Notes = shipment.Notes,
             CreatedAt = shipment.CreatedAt
         };

@@ -28,7 +28,15 @@ const Staff = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const role = localStorage.getItem('role')
+    const token = localStorage.getItem('token')
+    let role = ''
+    if (token) {
+        try {
+            const payload = JSON.parse(atob(token.split('.')[1]))
+            role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role || ''
+        } catch (e) {}
+    }
+
     if (role !== 'Supplier') {
       navigate('/dashboard') // Only managers can access this
       return

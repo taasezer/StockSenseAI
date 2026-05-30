@@ -60,7 +60,7 @@ const Login = () => {
       <div className="auth-box">
         <div className="auth-logo">
           <h1>StockSense<span>AI</span></h1>
-          <p className="auth-subtitle">System Access Required</p>
+          <p className="auth-subtitle">{t('login.subtitle')}</p>
         </div>
 
         {error && (

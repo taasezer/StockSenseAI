@@ -42,6 +42,23 @@ public class TasksController : ControllerBase
         return Ok(new { message = "AI tasks generated successfully based on current stock and shipments." });
     }
 
+    public class CreateTaskDto
+    {
+        public string Title { get; set; } = string.Empty;
+        public string Description { get; set; } = string.Empty;
+        public int? AssignedUserId { get; set; }
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> CreateTask([FromBody] CreateTaskDto dto)
+    {
+        var supplierId = GetSupplierId();
+        if (supplierId == 0) return BadRequest("No Supplier Context");
+
+        var task = await _taskService.AssignTaskAsync(dto.Title, dto.Description, null, supplierId, dto.AssignedUserId);
+        return Ok(task);
+    }
+
     [HttpPut("{id}/complete")]
     public async Task<IActionResult> CompleteTask(int id)
     {

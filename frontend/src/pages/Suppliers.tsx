@@ -162,7 +162,10 @@ const Suppliers = () => {
         <div style={{ padding: '24px', maxWidth: '1400px', margin: '0 auto' }}>
             {/* Header */}
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <h1 className="page-title" style={{ margin: 0 }}>🚚 Supply Chain Management</h1>
+                <h1 className="page-title" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg width="28" height="28" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"></path></svg>
+                    Supply Chain Management
+                </h1>
             </div>
 
             {/* Tabs */}
@@ -200,8 +203,8 @@ const Suppliers = () => {
                                 <tr key={supplier.id} style={{ borderBottom: '1px solid var(--border-color)' }}>
                                     <td style={{ padding: '12px 16px', fontWeight: '500' }}>{supplier.name}</td>
                                     <td style={{ padding: '12px 16px', color: 'var(--text-muted)', fontSize: '14px' }}>
-                                        {supplier.contactEmail && <div>📧 {supplier.contactEmail}</div>}
-                                        {supplier.contactPhone && <div>📞 {supplier.contactPhone}</div>}
+                                        {supplier.contactEmail && <div style={{display: 'flex', alignItems: 'center', gap: '4px'}}><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path></svg> {supplier.contactEmail}</div>}
+                                        {supplier.contactPhone && <div style={{display: 'flex', alignItems: 'center', gap: '4px', marginTop: '4px'}}><svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z"></path></svg> {supplier.contactPhone}</div>}
                                     </td>
                                     <td style={{ padding: '12px 16px', textAlign: 'center' }}>{supplier.averageLeadTimeDays} days</td>
                                     <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: '600' }}>{supplier.productCount}</td>

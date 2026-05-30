@@ -9,11 +9,13 @@ public class TaskService : ITaskService
 {
     private readonly AppDbContext _context;
     private readonly IAIInsightsService _aiService;
+    private readonly INotificationService _notificationService;
 
-    public TaskService(AppDbContext context, IAIInsightsService aiService)
+    public TaskService(AppDbContext context, IAIInsightsService aiService, INotificationService notificationService)
     {
         _context = context;
         _aiService = aiService;
+        _notificationService = notificationService;
     }
 
     public async Task<IEnumerable<EmployeeTask>> GetAllTasksAsync(int supplierId)
@@ -25,11 +27,29 @@ public class TaskService : ITaskService
             .ToListAsync();
     }
 
-    public async Task<EmployeeTask> AssignTaskAsync(string title, string description, int? shipmentId, int supplierId)
+    public async Task<EmployeeTask> AssignTaskAsync(string title, string description, int? shipmentId, int supplierId, int? assignedUserId = null)
     {
-        // Bulunan depoculardan birini rastgele veya en az görevi olana ata
-        var users = await _context.Users.Where(u => u.SupplierId == supplierId).ToListAsync();
-        var assignee = users.FirstOrDefault(); // Basit atama mantığı
+        User? assignee = null;
+
+        if (assignedUserId.HasValue)
+        {
+            assignee = await _context.Users.FirstOrDefaultAsync(u => u.Id == assignedUserId.Value && u.SupplierId == supplierId);
+        }
+        else
+        {
+            // Eğer boş bırakılırsa, (AI kararı / Akıllı atama) en az görevi olan çalışanı bul
+            var usersWithTaskCounts = await _context.Users
+                .Where(u => u.SupplierId == supplierId && u.Role == "Staff")
+                .Select(u => new
+                {
+                    User = u,
+                    TaskCount = _context.EmployeeTasks.Count(t => t.AssignedUserId == u.Id && t.Status != "Completed")
+                })
+                .OrderBy(x => x.TaskCount)
+                .FirstOrDefaultAsync();
+
+            assignee = usersWithTaskCounts?.User;
+        }
 
         var task = new EmployeeTask
         {
@@ -43,6 +63,15 @@ public class TaskService : ITaskService
 
         _context.EmployeeTasks.Add(task);
         await _context.SaveChangesAsync();
+
+        if (assignee != null)
+        {
+            await _notificationService.CreateNotificationAsync(
+                assignee.Id, 
+                $"Yeni Görev Atandı: {title} ({(shipmentId.HasValue ? $"Sevkiyat #{shipmentId}" : "Genel")})"
+            );
+        }
+
         return task;
     }
 

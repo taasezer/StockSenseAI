@@ -1,43 +1,53 @@
 @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap');
 
 :root {
-  /* Core Colors - Default Dark */
-  --bg-dark: #09090b;
-  --bg-panel: #121214;
-  --bg-panel-hover: #1c1c1f;
-  --border-color: #27272a;
+  /* Core Colors - Product Level Dark Theme */
+  --bg-dark: #000000;
+  --bg-panel: #0a0a0a;
+  --bg-panel-hover: #141414;
+  --border-color: #262626;
   
   /* Brand Accents */
-  --brand-red: #dc2626;
-  --brand-red-hover: #b91c1c;
-  --brand-red-glow: rgba(220, 38, 38, 0.4);
+  --brand-red: #e11d48;
+  --brand-red-hover: #f43f5e;
+  --brand-red-glow: rgba(225, 29, 72, 0.4);
   
   /* Text */
   --text-main: #ffffff;
-  --text-muted: #a1a1aa;
-  --text-dark: #18181b;
+  --text-muted: #a3a3a3;
+  --text-dark: #000000;
 
   /* Layout */
-  --radius: 8px;
-  --sidebar-width: 250px;
+  --radius: 12px;
+  --sidebar-width: 260px;
+  
+  /* Gradients */
+  --grad-start: #000000;
+  --grad-end: #0a0a0a;
+  --grad-glow: rgba(225, 29, 72, 0.08);
 }
 
 :root[data-theme="light"] {
-  /* Core Colors - Light */
-  --bg-dark: #f8fafc;
-  --bg-panel: #ffffff;
-  --bg-panel-hover: #f1f5f9;
-  --border-color: #e2e8f0;
+  /* Light theme adapted for black/red/white consistency */
+  --bg-dark: #ffffff;
+  --bg-panel: rgba(245, 245, 245, 0.8);
+  --bg-panel-hover: #e5e5e5;
+  --border-color: rgba(0, 0, 0, 0.1);
   
   /* Brand Accents */
-  --brand-red: #ef4444;
-  --brand-red-hover: #dc2626;
-  --brand-red-glow: rgba(239, 68, 68, 0.2);
+  --brand-red: #e11d48;
+  --brand-red-hover: #be123c;
+  --brand-red-glow: rgba(225, 29, 72, 0.2);
   
   /* Text */
-  --text-main: #0f172a;
-  --text-muted: #64748b;
+  --text-main: #000000;
+  --text-muted: #525252;
   --text-dark: #ffffff;
+
+  /* Gradients */
+  --grad-start: #ffffff;
+  --grad-end: #f5f5f5;
+  --grad-glow: rgba(225, 29, 72, 0.04);
 }
 
 * {
@@ -49,74 +59,137 @@
 body {
   font-family: 'Outfit', sans-serif;
   background-color: var(--bg-dark);
+  /* Liquid Glass needs a rich background to show the blur effect */
+  background-image: 
+    radial-gradient(circle at 15% 50%, var(--grad-glow) 0%, transparent 25%),
+    radial-gradient(circle at 85% 30%, var(--grad-glow) 0%, transparent 25%),
+    linear-gradient(135deg, var(--grad-start) 0%, var(--grad-end) 100%);
+  background-attachment: fixed;
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
   min-height: 100vh;
+  transition: background-color 0.3s, color 0.3s;
 }
 
-/* Base Inputs */
-input, select, button {
+/* Base Inputs - Liquid Glass */
+input, select, button, textarea {
   font-family: inherit;
 }
 
 .input-field {
   width: 100%;
-  background-color: var(--bg-panel);
-  border: 1px solid var(--border-color);
+  background: rgba(20, 20, 20, 0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-main);
   padding: 12px 16px;
   border-radius: var(--radius);
   outline: none;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   font-size: 15px;
+  box-shadow: inset 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .input-field:focus {
-  border-color: var(--brand-red);
-  box-shadow: 0 0 0 1px var(--brand-red);
+  border-color: rgba(225, 29, 72, 0.5);
+  box-shadow: 0 0 0 1px rgba(225, 29, 72, 0.5), inset 0 2px 4px rgba(0,0,0,0.2);
+  background: rgba(30, 30, 30, 0.6);
 }
 
 .input-field::placeholder {
-  color: #52525b;
+  color: #737373;
 }
 
-/* Buttons */
+/* Base Tables - Liquid Glass */
+table {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  margin-top: 16px;
+}
+
+th {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(8px);
+  padding: 16px;
+  font-weight: 600;
+  color: var(--text-muted);
+  text-align: left;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+td {
+  padding: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+  background: rgba(0, 0, 0, 0.2);
+  transition: background 0.2s;
+}
+
+tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Liquid Glass Buttons */
 .btn-primary {
   width: 100%;
-  background-color: var(--brand-red);
-  color: white;
-  border: none;
+  background: rgba(225, 29, 72, 0.85);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.2);
   padding: 12px 24px;
   border-radius: var(--radius);
   font-weight: 600;
   font-size: 15px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 8px;
+  box-shadow: 0 4px 15px rgba(225, 29, 72, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.3);
+}
+
+.btn-primary:hover {
+  background: rgba(225, 29, 72, 1);
+  box-shadow: 0 8px 25px rgba(225, 29, 72, 0.5), inset 0 1px 1px rgba(255, 255, 255, 0.4);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+}
+
+.btn-outline {
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  color: var(--text-main);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 8px 16px;
+  border-radius: var(--radius);
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
   display: flex;
   justify-content: center;
   align-items: center;
   gap: 8px;
 }
 
-.btn-primary:hover {
-  background-color: var(--brand-red-hover);
-  box-shadow: 0 0 15px var(--brand-red-glow);
-}
-
-.btn-outline {
-  background-color: transparent;
-  color: var(--text-muted);
-  border: 1px solid var(--border-color);
-  padding: 8px 16px;
-  border-radius: var(--radius);
-  font-weight: 500;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-
 .btn-outline:hover {
-  border-color: var(--brand-red);
+  background: rgba(225, 29, 72, 0.1);
+  border-color: rgba(225, 29, 72, 0.5);
   color: var(--brand-red);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.btn-outline:active {
+  transform: translateY(0);
 }
 
 /* Layout */
@@ -124,15 +197,20 @@ input, select, button {
   display: flex;
   height: 100vh;
   overflow: hidden;
+  background: transparent;
 }
 
-/* Sidebar */
+/* Sidebar - Liquid Glass */
 .sidebar {
   width: var(--sidebar-width);
-  background-color: var(--bg-dark);
-  border-right: 1px solid var(--border-color);
+  background: rgba(10, 10, 10, 0.6);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border-right: 1px solid rgba(255, 255, 255, 0.05);
   display: flex;
   flex-direction: column;
+  box-shadow: 4px 0 24px rgba(0, 0, 0, 0.2);
+  z-index: 100;
 }
 
 .sidebar-header {
@@ -140,7 +218,7 @@ input, select, button {
   display: flex;
   align-items: center;
   padding: 0 20px;
-  border-bottom: 1px solid var(--border-color);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-logo {
@@ -152,14 +230,14 @@ input, select, button {
 .sidebar-logo-icon {
   width: 32px;
   height: 32px;
-  background-color: var(--bg-panel);
-  border-radius: 50%;
+  background: rgba(225, 29, 72, 0.1);
+  border-radius: 8px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(225, 29, 72, 0.3);
   color: var(--brand-red);
-  box-shadow: inset 0 0 10px rgba(220, 38, 38, 0.1);
+  box-shadow: 0 0 10px rgba(225, 29, 72, 0.2);
 }
 
 .sidebar-title {
@@ -191,28 +269,36 @@ input, select, button {
   border-radius: var(--radius);
   font-weight: 500;
   font-size: 14px;
-  transition: all 0.2s;
+  transition: all 0.3s ease;
+  border: 1px solid transparent;
 }
 
 .sidebar-link:hover {
-  background-color: var(--bg-panel);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text-main);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 .sidebar-link.active {
-  background-color: var(--brand-red);
-  color: white;
-  box-shadow: 0 4px 12px rgba(220, 38, 38, 0.3);
+  background: rgba(225, 29, 72, 0.15);
+  color: var(--brand-red);
+  border-color: rgba(225, 29, 72, 0.3);
+  box-shadow: inset 0 0 12px rgba(225, 29, 72, 0.1);
 }
 
 .sidebar-link svg {
   width: 18px;
   height: 18px;
+  transition: transform 0.3s ease;
+}
+
+.sidebar-link:hover svg, .sidebar-link.active svg {
+  transform: scale(1.1);
 }
 
 .sidebar-footer {
   padding: 20px;
-  border-top: 1px solid var(--border-color);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .logout-btn {
@@ -241,7 +327,7 @@ input, select, button {
   flex: 1;
   display: flex;
   flex-direction: column;
-  background-color: var(--bg-dark);
+  background: transparent;
 }
 
 .top-header {
@@ -250,8 +336,11 @@ input, select, button {
   align-items: center;
   justify-content: flex-end;
   padding: 0 32px;
-  border-bottom: 1px solid var(--border-color);
-  background-color: var(--bg-dark);
+  background: rgba(10, 10, 10, 0.4);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  z-index: 90;
 }
 
 .header-actions {
@@ -264,29 +353,36 @@ input, select, button {
   flex: 1;
   padding: 32px;
   overflow-y: auto;
+  position: relative;
+  z-index: 10;
 }
 
-/* Dashboard Cards */
+/* Dashboard Cards - Liquid Glass */
 .dash-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-  gap: 20px;
+  gap: 24px;
   margin-top: 24px;
 }
 
 .stat-card {
-  background-color: var(--bg-panel);
-  border: 1px solid var(--border-color);
+  background: rgba(20, 20, 20, 0.6);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
   border-radius: var(--radius);
   padding: 24px;
   display: flex;
   flex-direction: column;
   gap: 16px;
-  transition: border-color 0.2s;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
 }
 
 .stat-card:hover {
-  border-color: #3f3f46;
+  border-color: rgba(225, 29, 72, 0.3);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.4), inset 0 0 20px rgba(225, 29, 72, 0.05);
 }
 
 .stat-header {
@@ -309,14 +405,15 @@ input, select, button {
 }
 
 .stat-icon {
-  width: 40px;
-  height: 40px;
-  border-radius: 8px;
-  background-color: var(--bg-dark);
+  width: 48px;
+  height: 48px;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--border-color);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 2px 4px rgba(255,255,255,0.05);
 }
 
 .stat-icon.red { color: var(--brand-red); }
@@ -324,7 +421,19 @@ input, select, button {
 .stat-icon.green { color: #10b981; }
 .stat-icon.orange { color: #f59e0b; }
 
-/* Login/Register Container */
+/* Login/Register Container - Animated Liquid Glass */
+@keyframes orbFloat1 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(40px, -60px) scale(1.1); }
+  66% { transform: translate(-30px, 30px) scale(0.9); }
+}
+
+@keyframes orbFloat2 {
+  0%, 100% { transform: translate(0, 0) scale(1); }
+  33% { transform: translate(-40px, 50px) scale(1.2); }
+  66% { transform: translate(30px, -30px) scale(0.8); }
+}
+
 .auth-container {
   min-height: 100vh;
   display: flex;
@@ -332,19 +441,46 @@ input, select, button {
   justify-content: center;
   background-color: var(--bg-dark);
   position: relative;
-  /* Faint particle background simulation */
-  background-image: radial-gradient(circle at 15% 50%, rgba(220, 38, 38, 0.03) 0%, transparent 25%),
-                    radial-gradient(circle at 85% 30%, rgba(220, 38, 38, 0.04) 0%, transparent 25%);
+  overflow: hidden;
+}
+
+.auth-container::before, .auth-container::after {
+  content: '';
+  position: absolute;
+  width: 50vw;
+  height: 50vw;
+  max-width: 600px;
+  max-height: 600px;
+  border-radius: 50%;
+  filter: blur(120px);
+  z-index: 0;
+  opacity: 0.3;
+}
+
+.auth-container::before {
+  background: var(--brand-red);
+  top: -10%;
+  left: -10%;
+  animation: orbFloat1 18s ease-in-out infinite;
+}
+
+.auth-container::after {
+  background: var(--brand-red);
+  bottom: -10%;
+  right: -10%;
+  animation: orbFloat2 22s ease-in-out infinite reverse;
 }
 
 .auth-box {
   width: 100%;
   max-width: 420px;
   padding: 40px;
-  background-color: var(--bg-dark);
+  background: var(--bg-panel);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
   border: 1px solid var(--border-color);
-  border-radius: 12px;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255,255,255,0.05);
   position: relative;
   z-index: 10;
 }
@@ -421,13 +557,40 @@ input, select, button {
   margin-bottom: 32px;
 }
 
-/* Language Switcher */
+/* Language Switcher - Liquid Glass */
 .lang-select {
-  background: var(--bg-panel);
-  border: 1px solid var(--border-color);
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   color: var(--text-main);
-  padding: 6px 10px;
+  padding: 8px 12px;
   border-radius: var(--radius);
   font-size: 13px;
   outline: none;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.lang-select:hover {
+  border-color: rgba(225, 29, 72, 0.5);
+}
+
+.lang-select option {
+  background: #111;
+  color: #fff;
+}
+
+/* Modals & Popups - Liquid Glass */
+.modal-overlay {
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(5px);
+}
+
+.modal-content {
+  background: rgba(20, 20, 20, 0.85);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), inset 0 1px 1px rgba(255,255,255,0.05);
 }

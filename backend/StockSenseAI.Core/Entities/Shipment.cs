@@ -13,7 +13,12 @@ public class Shipment
     public DateTime? ActualArrival { get; set; }
     public ShipmentStatus Status { get; set; } = ShipmentStatus.Pending;
     
-    public string? TrackingNumber { get; set; }
+    public string? TrackingNumber { get; set; } // Will be generated as Country-Region-Random
+    public string? OriginLocation { get; set; }
+    public string? DestinationCountryCode { get; set; } // e.g. TR
+    public string? DestinationRegionCode { get; set; } // e.g. 01
+    public string? DestinationCity { get; set; }
+    public string? DestinationAddress { get; set; }
     public string? Notes { get; set; }
     
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;

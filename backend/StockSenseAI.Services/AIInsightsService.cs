@@ -163,18 +163,40 @@ public class AIInsightsService : IAIInsightsService
     public async Task<IEnumerable<PriceOptimizationDto>> GetAllPriceOptimizationsAsync()
     {
         var products = await _context.Products.ToListAsync();
-        var optimizations = new List<PriceOptimizationDto>();
+        if (!products.Any()) return new List<PriceOptimizationDto>();
 
-        foreach (var product in products) 
+        var productSummary = string.Join("\n", products.Select(p => $"ID:{p.Id}, Name:{p.Name}, Price:{p.Price}, Stock:{p.StockCount}, Reorder:{p.ReorderLevel}"));
+        var prompt = $"Products:\n{productSummary}\nProvide a JSON array 'optimizations' where each object has: productId (int), suggestedPrice (number), reasoning (string), confidence (High/Medium/Low). Only include products that NEED a price change.";
+        
+        var jsonResponse = await CallOpenAIJsonAsync("You are a pricing optimization AI. Respond ONLY with valid JSON.", prompt);
+
+        var list = new List<PriceOptimizationDto>();
+        try
         {
-            var optimization = await GetPriceOptimizationAsync(product.Id);
-            if (optimization.PriceChange != 0)
+            using var doc = JsonDocument.Parse(jsonResponse);
+            foreach (var o in doc.RootElement.GetProperty("optimizations").EnumerateArray())
             {
-                optimizations.Add(optimization);
+                var pId = o.GetProperty("productId").GetInt32();
+                var prod = products.FirstOrDefault(p => p.Id == pId);
+                if (prod != null)
+                {
+                    var suggestedPrice = o.GetProperty("suggestedPrice").GetDecimal();
+                    var reasoning = o.GetProperty("reasoning").GetString() ?? "";
+                    var confidence = o.GetProperty("confidence").GetString() ?? "Medium";
+                    
+                    list.Add(new PriceOptimizationDto
+                    {
+                        ProductId = prod.Id, ProductName = prod.Name, CurrentPrice = prod.Price,
+                        SuggestedPrice = suggestedPrice, PriceChange = suggestedPrice - prod.Price,
+                        PriceChangePercent = prod.Price > 0 ? Math.Round((suggestedPrice - prod.Price) / prod.Price * 100, 2) : 0,
+                        Reasoning = reasoning, Confidence = confidence
+                    });
+                }
             }
         }
+        catch { }
 
-        return optimizations.OrderByDescending(o => Math.Abs(o.PriceChangePercent));
+        return list.OrderByDescending(o => Math.Abs(o.PriceChangePercent));
     }
 
     private static string GenerateOverallSummary(IEnumerable<PriceOptimizationDto> prices, IEnumerable<AnomalyDto> anomalies)

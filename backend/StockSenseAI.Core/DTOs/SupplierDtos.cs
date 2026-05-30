@@ -30,6 +30,11 @@ public class ShipmentDto
     public int Quantity { get; set; }
     public DateTime ExpectedArrival { get; set; }
     public string? TrackingNumber { get; set; }
+    public string? OriginLocation { get; set; }
+    public string? DestinationCountryCode { get; set; }
+    public string? DestinationRegionCode { get; set; }
+    public string? DestinationCity { get; set; }
+    public string? DestinationAddress { get; set; }
     public string? Notes { get; set; }
 }
 
@@ -45,6 +50,11 @@ public class ShipmentResponseDto
     public DateTime? ActualArrival { get; set; }
     public string Status { get; set; } = string.Empty;
     public string? TrackingNumber { get; set; }
+    public string? OriginLocation { get; set; }
+    public string? DestinationCountryCode { get; set; }
+    public string? DestinationRegionCode { get; set; }
+    public string? DestinationCity { get; set; }
+    public string? DestinationAddress { get; set; }
     public string? Notes { get; set; }
     public DateTime CreatedAt { get; set; }
 }

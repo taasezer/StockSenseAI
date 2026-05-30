@@ -10,17 +10,32 @@ interface Task {
 
 const Tasks = () => {
   const [tasks, setTasks] = useState<Task[]>([])
+  const [staff, setStaff] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [showAddModal, setShowAddModal] = useState(false)
+  const [newTask, setNewTask] = useState({ title: '', description: '', assignedUserId: '' })
 
   const fetchTasks = async () => {
     try {
       const token = localStorage.getItem('token')
-      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/tasks`, {
-        headers: { 'Authorization': `Bearer ${token}` }
-      })
-      if (response.ok) {
-        const data = await response.json()
-        setTasks(data)
+      const headers = { 'Authorization': `Bearer ${token}` }
+      
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tasks`, { headers })
+      if (res.ok) setTasks(await res.json())
+
+      // Decode role
+      let role = ''
+      if (token) {
+          try {
+              const payload = JSON.parse(atob(token.split('.')[1]))
+              role = payload['http://schemas.microsoft.com/ws/2008/06/identity/claims/role'] || payload.role || ''
+          } catch (e) {}
+      }
+
+      // If supplier, fetch staff for manual assignment
+      if (role === 'Supplier') {
+          const staffRes = await fetch(`${import.meta.env.VITE_API_URL}/api/staff`, { headers })
+          if (staffRes.ok) setStaff(await staffRes.json())
       }
     } catch (err) {
       console.error(err)
@@ -71,6 +86,33 @@ const Tasks = () => {
     }
   }
 
+  const handleCreateTask = async (e: React.FormEvent) => {
+    e.preventDefault()
+    try {
+      const token = localStorage.getItem('token')
+      const payload = {
+        title: newTask.title,
+        description: newTask.description,
+        assignedUserId: newTask.assignedUserId ? parseInt(newTask.assignedUserId) : null
+      }
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/tasks`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify(payload)
+      })
+      if (res.ok) {
+        setShowAddModal(false)
+        setNewTask({ title: '', description: '', assignedUserId: '' })
+        fetchTasks()
+      }
+    } catch (err) {
+      console.error(err)
+    }
+  }
+
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault()
   }
@@ -118,10 +160,46 @@ const Tasks = () => {
           <h1 className="brand-title">Mission Control <span>(Tasks)</span></h1>
           <p className="brand-subtitle">Drag and drop shipments and warehouse duties.</p>
         </div>
-        <button onClick={handleGenerateAITasks} className="glass-btn" style={{ width: 'auto', padding: '12px 24px' }}>
-          ✨ Auto-Assign AI Tasks
-        </button>
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button onClick={() => setShowAddModal(true)} className="btn-outline" style={{ width: 'auto', padding: '12px 24px' }}>
+            + Add Task
+          </button>
+          <button onClick={handleGenerateAITasks} className="glass-btn" style={{ width: 'auto', padding: '12px 24px' }}>
+            ✨ Auto-Assign AI Tasks
+          </button>
+        </div>
       </div>
+
+      {showAddModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.8)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
+          <div className="glass-panel" style={{ width: '400px', padding: '24px', backgroundColor: 'var(--bg-panel)' }}>
+            <h3 style={{ fontSize: '20px', marginBottom: '16px' }}>Create Manual Task</h3>
+            <form onSubmit={handleCreateTask} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Title</label>
+                <input required type="text" className="input-field" value={newTask.title} onChange={e => setNewTask({...newTask, title: e.target.value})} style={{ width: '100%' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Description</label>
+                <textarea required className="input-field" rows={3} value={newTask.description} onChange={e => setNewTask({...newTask, description: e.target.value})} style={{ width: '100%' }}></textarea>
+              </div>
+              {staff.length > 0 && (
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Assign To (Optional)</label>
+                  <select className="input-field" value={newTask.assignedUserId} onChange={e => setNewTask({...newTask, assignedUserId: e.target.value})} style={{ width: '100%' }}>
+                    <option value="">Auto-Assign (AI / Idle Employee)</option>
+                    {staff.map(s => <option key={s.id} value={s.id}>{s.username} ({s.taskCount} tasks pending)</option>)}
+                  </select>
+                </div>
+              )}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                <button type="button" className="btn-outline" onClick={() => setShowAddModal(false)} style={{ flex: 1 }}>Cancel</button>
+                <button type="submit" className="btn-primary" style={{ flex: 1 }}>Save Task</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {loading ? (
         <div className="spinner-wrapper"><div className="liquid-spinner"></div></div>

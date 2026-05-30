@@ -145,7 +145,7 @@ const Products = () => {
             <h2 className="page-title">Inventory Management</h2>
             <p className="page-subtitle">
                 Isolated Database Area 
-                {profile?.supplierId && <span style={{ marginLeft: '8px', color: 'var(--brand-red)', fontWeight: 'bold' }}>[SUP-{String(profile.supplierId).padStart(4, '0')}]</span>}
+                {profile?.supplierCode && <span style={{ marginLeft: '8px', color: 'var(--brand-red)', fontWeight: 'bold' }}>[{profile.supplierCode}]</span>}
             </p>
           </div>
           <button 
@@ -216,7 +216,6 @@ const Products = () => {
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Price</th>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Category</th>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Stock</th>
-                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Supplier ID</th>
               </tr>
             </thead>
             <tbody>
@@ -240,9 +239,6 @@ const Products = () => {
                     }}>
                       {product.stockCount}
                     </span>
-                  </td>
-                  <td style={{ padding: '16px', color: 'var(--brand-red)', fontFamily: 'monospace' }}>
-                      {product.supplierId ? `SUP-${product.supplierId.toString().padStart(4, '0')}` : 'Global'}
                   </td>
                 </tr>
               ))}

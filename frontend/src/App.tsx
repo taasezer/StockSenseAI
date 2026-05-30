@@ -13,6 +13,7 @@ import Integrations from './pages/Integrations'
 import Tasks from './pages/Tasks'
 import Profile from './pages/Profile'
 import Staff from './pages/Staff'
+import Shipments from './pages/Shipments'
 import PlaceholderPage from './pages/PlaceholderPage'
 import { useEffect } from 'react'
 import { startSignalRConnection } from './services/api'
@@ -49,7 +50,7 @@ function App() {
           <Route path="/tasks" element={<MainLayout><Tasks /></MainLayout>} />
           <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
           <Route path="/staff" element={<MainLayout><Staff /></MainLayout>} />
-          <Route path="/shipments" element={<MainLayout><PlaceholderPage title="Shipments" /></MainLayout>} />
+          <Route path="/shipments" element={<MainLayout><Shipments /></MainLayout>} />
           <Route path="/" element={<Navigate to="/login" replace />} />
         </Routes>
       </LanguageProvider>
@@ -58,6 +59,7 @@ function App() {
 }
 
 export default App
+
 
 
 

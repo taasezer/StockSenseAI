@@ -18,7 +18,8 @@ namespace StockSenseAI.Infrastructure
         public DbSet<User> Users { get; set; } = null!;
         public DbSet<Supplier> Suppliers { get; set; } = null!;
         public DbSet<Shipment> Shipments { get; set; } = null!;
-        public DbSet<AlertSettings> AlertSettings { get; set; } = null!;
+        public DbSet<AlertSettings> AlertSettings { get; set; }
+    public DbSet<Notification> Notifications { get; set; } = null!;
         public DbSet<StockAlert> StockAlerts { get; set; } = null!;
         public DbSet<Warehouse> Warehouses { get; set; } = null!;
         public DbSet<WarehouseStock> WarehouseStocks { get; set; } = null!;

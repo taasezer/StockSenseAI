@@ -110,9 +110,9 @@ const Profile = () => {
                     )}
                     
                     <div style={{ backgroundColor: 'var(--bg-dark)', padding: '16px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'block', marginBottom: '4px' }}>Supplier ID</span>
-                        <span style={{ fontSize: '16px', fontWeight: '600', fontFamily: 'monospace' }}>
-                            {profile?.supplierId ? `SUP-${profile.supplierId.padStart(4, '0')}` : 'System Admin'}
+                        <span style={{ color: 'var(--text-muted)', fontSize: '13px', display: 'block', marginBottom: '4px' }}>Organization Code</span>
+                        <span style={{ fontSize: '16px', fontWeight: '600', fontFamily: 'monospace', color: 'var(--brand-red)' }}>
+                            {profile?.supplierCode ? profile.supplierCode : 'System Admin'}
                         </span>
                     </div>
                     
