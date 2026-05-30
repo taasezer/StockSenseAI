@@ -11,6 +11,7 @@ public class Product
     public int ReorderLevel { get; set; } = 10; // Default threshold for low stock alert
     public int LeadTimeDays { get; set; } = 7; // Days needed for restock
     public string? Description { get; set; }
+    public string? ImageUrl { get; set; }
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     

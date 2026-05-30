@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.SignalR;
 using StockSenseAI.Api.Hubs;
 using StockSenseAI.Core.DTOs;
 using StockSenseAI.Services;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace StockSenseAI.Api.Controllers;
 
@@ -76,5 +78,45 @@ public class ProductsController : ControllerBase
         if (product == null) return NotFound();
         await _hubContext.Clients.All.SendAsync("ReceiveProductUpdate", product);
         return Ok(product);
+    }
+
+    [HttpPost("{id}/upload-image")]
+    public async Task<IActionResult> UploadImage(int id, IFormFile file)
+    {
+        if (file == null || file.Length == 0) return BadRequest("No file uploaded");
+
+        var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+        if (!Directory.Exists(uploadsPath))
+            Directory.CreateDirectory(uploadsPath);
+
+        var extension = Path.GetExtension(file.FileName);
+        var newFileName = $"product_{id}_{Guid.NewGuid()}{extension}";
+        var filePath = Path.Combine(uploadsPath, newFileName);
+
+        using (var stream = new FileStream(filePath, FileMode.Create))
+        {
+            await file.CopyToAsync(stream);
+        }
+
+        var product = await _productService.GetByIdAsync(id);
+        if (product == null) return NotFound();
+
+        var productDto = new ProductDto
+        {
+            Name = product.Name,
+            Price = product.Price,
+            Category = product.Category,
+            StockCount = product.StockCount,
+            ReorderLevel = product.ReorderLevel,
+            LeadTimeDays = product.LeadTimeDays,
+            SupplierId = product.SupplierId,
+            Description = product.Description,
+            ImageUrl = $"/uploads/{newFileName}"
+        };
+
+        var updatedProduct = await _productService.UpdateAsync(id, productDto);
+
+        await _hubContext.Clients.All.SendAsync("ReceiveProductUpdate", updatedProduct);
+        return Ok(updatedProduct);
     }
 }

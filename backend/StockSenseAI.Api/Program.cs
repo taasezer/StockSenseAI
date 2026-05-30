@@ -113,6 +113,7 @@ var app = builder.Build();
 
 // Configure pipeline - SIMPLE
 app.UseCors("AllowAll");
+app.UseStaticFiles();
 
 // Enable Swagger for both Development and Production for easy testing
 app.UseSwagger();

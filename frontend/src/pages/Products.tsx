@@ -9,6 +9,7 @@ interface Product {
   category: string
   stockCount: number
   supplierId?: number
+  imageUrl?: string
 }
 
 interface UserProfile {
@@ -22,7 +23,9 @@ const Products = () => {
   const [profile, setProfile] = useState<UserProfile | null>(null)
   const [showAddModal, setShowAddModal] = useState(false)
   const [newProduct, setNewProduct] = useState({ name: '', price: 0, category: '', stockCount: 0 })
+  const [imageFile, setImageFile] = useState<File | null>(null)
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [isExporting, setIsExporting] = useState(false)
   const navigate = useNavigate()
 
   useEffect(() => {
@@ -118,15 +121,60 @@ const Products = () => {
       })
 
       if (!response.ok) throw new Error('Failed to create product')
+      const createdProduct = await response.json()
       
+      // If there's an image file, upload it
+      if (imageFile) {
+        const formData = new FormData()
+        formData.append('file', imageFile)
+        await fetch(`${import.meta.env.VITE_API_URL}/api/products/${createdProduct.id}/upload-image`, {
+          method: 'POST',
+          headers: { 'Authorization': `Bearer ${token}` },
+          body: formData
+        })
+      }
+
       setShowAddModal(false)
       setNewProduct({ name: '', price: 0, category: '', stockCount: 0 })
+      setImageFile(null)
       // SignalR will automatically update the list, but we can also fetch just in case
       await fetchProducts()
     } catch (err: any) {
       alert(err.message)
     } finally {
       setIsSubmitting(false)
+    }
+  }
+
+  const handleExportBarcodes = async () => {
+    if (products.length === 0) return alert('No products to export.')
+    setIsExporting(true)
+    try {
+      const token = localStorage.getItem('token')
+      const productIds = products.map(p => p.id)
+      const res = await fetch(`${import.meta.env.VITE_API_URL}/api/barcodes/labels/pdf`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ productIds })
+      })
+      if (!res.ok) throw new Error('Failed to export barcodes')
+      
+      const blob = await res.blob()
+      const url = window.URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = `product-labels-${new Date().toISOString().split('T')[0]}.pdf`
+      document.body.appendChild(a)
+      a.click()
+      a.remove()
+      window.URL.revokeObjectURL(url)
+    } catch (err: any) {
+      alert(err.message)
+    } finally {
+      setIsExporting(false)
     }
   }
 
@@ -148,13 +196,23 @@ const Products = () => {
                 {profile?.supplierCode && <span style={{ marginLeft: '8px', color: 'var(--brand-red)', fontWeight: 'bold' }}>[{profile.supplierCode}]</span>}
             </p>
           </div>
-          <button 
-            onClick={() => setShowAddModal(true)} 
-            className="btn-primary" 
-            style={{ padding: '10px 20px', width: 'auto', whiteSpace: 'nowrap' }}
-          >
-            + Add Product
-          </button>
+          <div style={{ display: 'flex', gap: '12px' }}>
+            <button 
+              onClick={handleExportBarcodes} 
+              disabled={isExporting}
+              className="btn-outline" 
+              style={{ padding: '10px 20px', width: 'auto', whiteSpace: 'nowrap' }}
+            >
+              {isExporting ? 'Exporting...' : 'Export Barcodes (PDF)'}
+            </button>
+            <button 
+              onClick={() => setShowAddModal(true)} 
+              className="btn-primary" 
+              style={{ padding: '10px 20px', width: 'auto', whiteSpace: 'nowrap' }}
+            >
+              + Add Product
+            </button>
+          </div>
       </div>
 
       {showAddModal && (
@@ -179,6 +237,10 @@ const Products = () => {
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Category</label>
                 <input required type="text" className="input-field" value={newProduct.category} onChange={e => setNewProduct({...newProduct, category: e.target.value})} />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Product Image (Optional)</label>
+                <input type="file" accept="image/*" className="input-field" onChange={e => setImageFile(e.target.files ? e.target.files[0] : null)} />
               </div>
               <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
                 <button type="button" className="btn-outline" onClick={() => setShowAddModal(false)} style={{ flex: 1 }}>Cancel</button>
@@ -211,6 +273,7 @@ const Products = () => {
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
             <thead>
               <tr style={{ backgroundColor: 'var(--bg-dark)', borderBottom: '1px solid var(--border-color)' }}>
+                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Image</th>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>ID</th>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Name</th>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Price</th>
@@ -221,6 +284,13 @@ const Products = () => {
             <tbody>
               {products.map((product, index) => (
                 <tr key={product.id} style={{ borderBottom: index < products.length - 1 ? '1px solid var(--border-color)' : 'none' }}>
+                  <td style={{ padding: '16px' }}>
+                    {product.imageUrl ? (
+                      <img src={`${import.meta.env.VITE_API_URL}${product.imageUrl}`} alt={product.name} style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '4px', border: '1px solid var(--border-color)' }} />
+                    ) : (
+                      <div style={{ width: '40px', height: '40px', backgroundColor: 'var(--bg-dark)', borderRadius: '4px', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--text-muted)', fontSize: '10px' }}>No Img</div>
+                    )}
+                  </td>
                   <td style={{ padding: '16px', color: 'var(--text-muted)' }}>#{product.id}</td>
                   <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: '500' }}>{product.name}</td>
                   <td style={{ padding: '16px', color: '#10b981', fontWeight: '600' }}>
