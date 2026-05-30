@@ -10,8 +10,15 @@ import AIInsights from './pages/AIInsights'
 import Warehouses from './pages/Warehouses'
 import Barcodes from './pages/Barcodes'
 import Integrations from './pages/Integrations'
+import Tasks from './pages/Tasks'
+import Profile from './pages/Profile'
+import Staff from './pages/Staff'
+import PlaceholderPage from './pages/PlaceholderPage'
 import { useEffect } from 'react'
 import { startSignalRConnection } from './services/api'
+import { LanguageProvider } from './contexts/LanguageContext'
+import { ThemeProvider } from './contexts/ThemeContext'
+import MainLayout from './components/layout/MainLayout'
 
 function App() {
   useEffect(() => {
@@ -22,22 +29,31 @@ function App() {
   }, [])
 
   return (
-    <div style={{ minHeight: '100vh', backgroundColor: '#f5f5f5' }}>
-      <Routes>
-        <Route path="/login" element={<Login />} />
-        <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/products" element={<Products />} />
-        <Route path="/alerts" element={<Alerts />} />
-        <Route path="/suppliers" element={<Suppliers />} />
-        <Route path="/reports" element={<Reports />} />
-        <Route path="/ai-insights" element={<AIInsights />} />
-        <Route path="/warehouses" element={<Warehouses />} />
-        <Route path="/barcodes" element={<Barcodes />} />
-        <Route path="/integrations" element={<Integrations />} />
-        <Route path="/" element={<Navigate to="/login" replace />} />
-      </Routes>
-    </div>
+    <ThemeProvider>
+      <LanguageProvider>
+        <Routes>
+          {/* Public Routes */}
+          <Route path="/login" element={<Login />} />
+          <Route path="/register" element={<Register />} />
+          
+          {/* Protected Routes inside MainLayout */}
+          <Route path="/dashboard" element={<MainLayout><Dashboard /></MainLayout>} />
+          <Route path="/products" element={<MainLayout><Products /></MainLayout>} />
+          <Route path="/alerts" element={<MainLayout><Alerts /></MainLayout>} />
+          <Route path="/suppliers" element={<MainLayout><Suppliers /></MainLayout>} />
+          <Route path="/reports" element={<MainLayout><Reports /></MainLayout>} />
+          <Route path="/ai-insights" element={<MainLayout><AIInsights /></MainLayout>} />
+          <Route path="/warehouses" element={<MainLayout><Warehouses /></MainLayout>} />
+          <Route path="/barcodes" element={<MainLayout><Barcodes /></MainLayout>} />
+          <Route path="/integrations" element={<MainLayout><Integrations /></MainLayout>} />
+          <Route path="/tasks" element={<MainLayout><Tasks /></MainLayout>} />
+          <Route path="/profile" element={<MainLayout><Profile /></MainLayout>} />
+          <Route path="/staff" element={<MainLayout><Staff /></MainLayout>} />
+          <Route path="/shipments" element={<MainLayout><PlaceholderPage title="Shipments" /></MainLayout>} />
+          <Route path="/" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </LanguageProvider>
+    </ThemeProvider>
   )
 }
 

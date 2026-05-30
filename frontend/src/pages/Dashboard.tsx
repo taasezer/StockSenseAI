@@ -2,240 +2,126 @@ import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getProducts, productHubConnection } from '../services/api'
 
+interface Product {
+  id: number
+  name: string
+  stockCount: number
+  price: number
+}
+
 const Dashboard = () => {
+  const [products, setProducts] = useState<Product[]>([])
+  const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
-  const [stats, setStats] = useState({
-    totalProducts: 0,
-    loading: true,
-    error: null as string | null
-  })
+
+  const fetchDashboardData = async () => {
+    try {
+      const data = await getProducts()
+      setProducts(data)
+    } catch (error) {
+      console.error('Error fetching dashboard data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
 
   useEffect(() => {
-    // Check if logged in
-    const token = localStorage.getItem('token')
-    if (!token) {
-      navigate('/login')
-      return
-    }
-
-    // Fetch real data from backend using service
-    const fetchDashboardData = async () => {
-      try {
-        const products = await getProducts()
-        setStats({
-          totalProducts: products?.length || 0,
-          loading: false,
-          error: null
-        })
-      } catch (error: any) {
-        const errorMessage = error.response?.status === 401
-          ? 'Session expired. Please login again.'
-          : 'Failed to load dashboard data'
-
-        setStats({
-          totalProducts: 0,
-          loading: false,
-          error: errorMessage
-        })
-
-        if (error.response?.status === 401) {
-          localStorage.removeItem('token')
-          setTimeout(() => navigate('/login'), 2000)
-        }
-      }
-    }
-
     fetchDashboardData()
 
-    // Setup live listeners for Dashboard stats
     const handleProductAddedOrDeleted = () => {
-      // Re-fetch to get correct totals. Alternatively, we could increment/decrement stats state directly.
       fetchDashboardData()
     }
 
-    productHubConnection.on("ReceiveProductDeleted", handleProductAddedOrDeleted)
-    // We might not have a generic ReceiveProductCreated, but ReceiveProductUpdate handles updates
-    // For full live tracking on the dashboard, a simple re-fetch when anything changes is safe.
-    productHubConnection.on("ReceiveProductUpdate", handleProductAddedOrDeleted)
+    const handleProductUpdate = (updatedProduct: any) => {
+      setProducts(prevProducts => 
+        prevProducts.map(p => p.id === updatedProduct.id ? updatedProduct : p)
+      )
+    }
+
+    if (productHubConnection) {
+      productHubConnection.on("ProductAdded", handleProductAddedOrDeleted)
+      productHubConnection.on("ProductDeleted", handleProductAddedOrDeleted)
+      productHubConnection.on("ReceiveProductUpdate", handleProductUpdate)
+    }
 
     return () => {
-      productHubConnection.off("ReceiveProductDeleted", handleProductAddedOrDeleted)
-      productHubConnection.off("ReceiveProductUpdate", handleProductAddedOrDeleted)
+      if (productHubConnection) {
+        productHubConnection.off("ProductAdded", handleProductAddedOrDeleted)
+        productHubConnection.off("ProductDeleted", handleProductAddedOrDeleted)
+        productHubConnection.off("ReceiveProductUpdate", handleProductUpdate)
+      }
     }
-  }, [navigate])
+  }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem('token')
-    navigate('/login')
-  }
+
+  const totalValue = products.reduce((sum, p) => sum + (p.stockCount * p.price), 0)
+  const lowStockItems = products.filter(p => p.stockCount < 20).length
 
   return (
-    <div style={{ minHeight: '100vh' }}>
-      {/* Header */}
-      <div className="header">
-        <h1 className="header-title">StockSenseAI Dashboard</h1>
-        <button onClick={handleLogout} className="btn btn-danger btn-sm">
-          Logout
-        </button>
-      </div>
+    <div>
+      <h2 className="page-title">Command Center</h2>
+      <p className="page-subtitle">Real-time overview of your supply chain</p>
 
-      {/* Content */}
-      <div className="container" style={{ paddingTop: 'var(--spacing-xl)', paddingBottom: 'var(--spacing-xl)' }}>
-        <div className="card fade-in">
-          <h2 className="card-header">Welcome to StockSenseAI</h2>
-          <p className="card-body mb-lg">
-            Your intelligent stock management system powered by AI
-          </p>
-
-          {stats.loading && (
-            <div className="alert alert-info">
-              <p style={{ margin: 0 }}>
-                <strong>⏳ Loading dashboard data...</strong>
-              </p>
+      {loading ? (
+        <div style={{ display: 'flex', justifyContent: 'center', padding: '40px' }}>
+            <div className="spinner"></div>
+        </div>
+      ) : (
+        <div className="dash-grid">
+          <div className="stat-card">
+            <div className="stat-header">
+                <div>
+                    <p className="stat-title">Total Products</p>
+                    <h3 className="stat-value">{products.length}</h3>
+                </div>
+                <div className="stat-icon red">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                </div>
             </div>
-          )}
-
-          {stats.error && (
-            <div className="alert alert-error">
-              <p style={{ margin: 0 }}>
-                <strong>⚠ Error:</strong> {stats.error}
-              </p>
-            </div>
-          )}
-
-          <div className="grid" style={{ marginTop: 'var(--spacing-xl)', display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '16px' }}>
-            {/* Card 1 - Products */}
-            <div className="stat-card" style={{ borderColor: 'var(--primary)' }}>
-              <h3 className="stat-title" style={{ color: 'var(--primary)' }}>Products</h3>
-              <p className="stat-value" style={{ color: 'var(--gray-900)' }}>
-                {stats.loading ? '...' : stats.totalProducts}
-              </p>
-              <p className="stat-description">Total products in inventory</p>
-              <button
-                onClick={() => navigate('/products')}
-                className="btn btn-primary btn-sm"
-                style={{ marginTop: 'var(--spacing-sm)' }}
-              >
-                View Products
-              </button>
-            </div>
-
-            {/* Card 2 - Alerts */}
-            <div className="stat-card" style={{ borderColor: 'var(--danger)' }}>
-              <h3 className="stat-title" style={{ color: 'var(--danger)' }}>⚠️ Alerts</h3>
-              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
-                Monitor low stock and out of stock products
-              </p>
-              <button
-                onClick={() => navigate('/alerts')}
-                className="btn btn-danger btn-sm"
-                style={{ marginTop: 'var(--spacing-sm)' }}
-              >
-                View Alerts
-              </button>
-            </div>
-
-            {/* Card 3 - Supply Chain */}
-            <div className="stat-card" style={{ borderColor: 'var(--secondary)' }}>
-              <h3 className="stat-title" style={{ color: 'var(--secondary)' }}>🚚 Supply Chain</h3>
-              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
-                Manage suppliers and track shipments
-              </p>
-              <button
-                onClick={() => navigate('/suppliers')}
-                className="btn btn-secondary btn-sm"
-                style={{ marginTop: 'var(--spacing-sm)' }}
-              >
-                Manage Suppliers
-              </button>
-            </div>
-
-            {/* Card 4 - Reports */}
-            <div className="stat-card" style={{ borderColor: 'var(--warning)' }}>
-              <h3 className="stat-title" style={{ color: 'var(--warning)' }}>📊 Reports</h3>
-              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
-                Generate PDF reports for inventory
-              </p>
-              <button
-                onClick={() => navigate('/reports')}
-                className="btn btn-warning btn-sm"
-                style={{ marginTop: 'var(--spacing-sm)' }}
-              >
-                View Reports
-              </button>
-            </div>
-
-            {/* Card 5 - AI Insights */}
-            <div className="stat-card" style={{ borderColor: '#7c3aed' }}>
-              <h3 className="stat-title" style={{ color: '#7c3aed' }}>🤖 AI Insights</h3>
-              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
-                Price optimization & anomaly detection
-              </p>
-              <button
-                onClick={() => navigate('/ai-insights')}
-                className="btn"
-                style={{ marginTop: 'var(--spacing-sm)', backgroundColor: '#7c3aed', color: 'white' }}
-              >
-                View Insights
-              </button>
-            </div>
-
-            {/* Card 6 - Warehouses */}
-            <div className="stat-card" style={{ borderColor: '#0d9488' }}>
-              <h3 className="stat-title" style={{ color: '#0d9488' }}>🏭 Warehouses</h3>
-              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
-                Multi-warehouse stock & transfers
-              </p>
-              <button
-                onClick={() => navigate('/warehouses')}
-                className="btn"
-                style={{ marginTop: 'var(--spacing-sm)', backgroundColor: '#0d9488', color: 'white' }}
-              >
-                Manage
-              </button>
-            </div>
-
-            {/* Card 7 - Barcodes */}
-            <div className="stat-card" style={{ borderColor: '#ec4899' }}>
-              <h3 className="stat-title" style={{ color: '#ec4899' }}>📱 Barcodes</h3>
-              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
-                QR codes & label printing
-              </p>
-              <button
-                onClick={() => navigate('/barcodes')}
-                className="btn"
-                style={{ marginTop: 'var(--spacing-sm)', backgroundColor: '#ec4899', color: 'white' }}
-              >
-                Generate
-              </button>
-            </div>
-
-            {/* Card 8 - Integrations */}
-            <div className="stat-card" style={{ borderColor: '#0ea5e9' }}>
-              <h3 className="stat-title" style={{ color: '#0ea5e9' }}>🔌 Integrations</h3>
-              <p className="stat-description" style={{ marginTop: 'var(--spacing-sm)' }}>
-                Webhooks & e-commerce sync
-              </p>
-              <button
-                onClick={() => navigate('/integrations')}
-                className="btn"
-                style={{ marginTop: 'var(--spacing-sm)', backgroundColor: '#0ea5e9', color: 'white' }}
-              >
-                Configure
-              </button>
-            </div>
+            <button onClick={() => navigate('/products')} className="btn-outline" style={{ marginTop: 'auto' }}>Manage Inventory</button>
           </div>
 
-          {!stats.loading && !stats.error && (
-            <div className="alert alert-success" style={{ marginTop: 'var(--spacing-xl)' }}>
-              <p style={{ margin: 0 }}>
-                <strong>✓ Backend connected successfully!</strong><br />
-                Frontend is now communicating with the .NET API
-              </p>
+          <div className="stat-card">
+            <div className="stat-header">
+                <div>
+                    <p className="stat-title">Active Tasks</p>
+                    <h3 className="stat-value">3</h3>
+                </div>
+                <div className="stat-icon blue">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"></path></svg>
+                </div>
             </div>
-          )}
+            <button onClick={() => navigate('/tasks')} className="btn-outline" style={{ marginTop: 'auto' }}>View Kanban Board</button>
+          </div>
+
+          <div className="stat-card">
+            <div className="stat-header">
+                <div>
+                    <p className="stat-title">Total Value</p>
+                    <h3 className="stat-value">${totalValue.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}</h3>
+                </div>
+                <div className="stat-icon green">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                </div>
+            </div>
+            <button onClick={() => navigate('/ai-insights')} className="btn-outline" style={{ marginTop: 'auto' }}>AI Analytics</button>
+          </div>
+          
+          <div className="stat-card">
+            <div className="stat-header">
+                <div>
+                    <p className="stat-title">Low Stock Alerts</p>
+                    <h3 className="stat-value">{lowStockItems}</h3>
+                </div>
+                <div className="stat-icon orange">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+                </div>
+            </div>
+            <button onClick={() => navigate('/reports')} className="btn-outline" style={{ marginTop: 'auto' }}>Generate PDF Report</button>
+          </div>
+
         </div>
-      </div>
+      )}
     </div>
   )
 }

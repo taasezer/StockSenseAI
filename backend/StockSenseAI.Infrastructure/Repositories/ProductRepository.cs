@@ -7,15 +7,18 @@ namespace StockSenseAI.Infrastructure.Repositories;
 public class ProductRepository : IProductRepository
 {
     private readonly AppDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public ProductRepository(AppDbContext context)
+    public ProductRepository(AppDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     public async Task<IEnumerable<Product>> GetAllAsync()
     {
         return await _context.Products
+            .Where(p => p.SupplierId == _currentUserService.SupplierId)
             .Include(p => p.SalesHistories)
             .ToListAsync();
     }
@@ -23,12 +26,17 @@ public class ProductRepository : IProductRepository
     public async Task<Product?> GetByIdAsync(int id)
     {
         return await _context.Products
+            .Where(p => p.SupplierId == _currentUserService.SupplierId)
             .Include(p => p.SalesHistories)
             .FirstOrDefaultAsync(p => p.Id == id);
     }
 
     public async Task<Product> CreateAsync(Product product)
     {
+        if (product.SupplierId == null || product.SupplierId == 0)
+        {
+            product.SupplierId = _currentUserService.SupplierId;
+        }
         _context.Products.Add(product);
         await _context.SaveChangesAsync();
         return product;

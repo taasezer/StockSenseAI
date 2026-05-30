@@ -133,7 +133,7 @@ public class AIInsightsService : IAIInsightsService
         var products = await _context.Products.ToListAsync();
         if (!products.Any()) return new List<AnomalyDto>();
 
-        var productSummary = string.Join(" | ", products.Take(20).Select(p => $"ID:{p.Id}, {p.Name}, Stock:{p.StockCount}, Reorder:{p.ReorderLevel}, Price:{p.Price}"));
+        var productSummary = string.Join(" | ", products.Select(p => $"ID:{p.Id}, {p.Name}, Stock:{p.StockCount}, Reorder:{p.ReorderLevel}, Price:{p.Price}"));
         var prompt = $"Products: {productSummary}. Find anomalies (e.g., out of stock, overstocked, weird prices). Provide JSON with an array 'anomalies' containing objects: productId (int), anomalyType (string), severity (Critical/Warning/Info), description (string), suggestedAction (string).";
 
         var jsonResponse = await CallOpenAIJsonAsync("You are an anomaly detection AI. Respond ONLY with valid JSON.", prompt);
@@ -165,7 +165,7 @@ public class AIInsightsService : IAIInsightsService
         var products = await _context.Products.ToListAsync();
         var optimizations = new List<PriceOptimizationDto>();
 
-        foreach (var product in products.Take(5)) // Limit to 5 to avoid OpenAI rate limits during testing
+        foreach (var product in products) 
         {
             var optimization = await GetPriceOptimizationAsync(product.Id);
             if (optimization.PriceChange != 0)

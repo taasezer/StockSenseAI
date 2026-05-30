@@ -13,6 +13,9 @@ public class Warehouse
     public bool IsActive { get; set; } = true;
     public bool IsPrimary { get; set; } = false;
     
+    public int SupplierId { get; set; }
+    public Supplier? Supplier { get; set; }
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
     

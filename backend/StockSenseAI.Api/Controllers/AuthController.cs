@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using System.Security.Claims;
 using StockSenseAI.Core.DTOs;
 using StockSenseAI.Core.Interfaces;
 using StockSenseAI.Services;
@@ -24,9 +26,32 @@ public class AuthController : ControllerBase
     }
 
     [HttpPost("register")]
-    public async Task<IActionResult> Register([FromBody] LoginDto loginDto)
+    public async Task<IActionResult> Register([FromBody] RegisterDto dto)
     {
-        var result = await _authService.RegisterAsync(loginDto.Username, loginDto.Password);
-        return result ? Ok("User registered successfully") : BadRequest("Registration failed");
+        try {
+            var result = await _authService.RegisterAsync(dto.Username, dto.Password, dto.SupplierCode);
+            return result ? Ok("User registered successfully") : BadRequest("Registration failed");
+        } catch (Exception ex) {
+            return BadRequest(new { message = ex.Message });
+        }
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult GetMe()
+    {
+        var username = User.FindFirstValue(ClaimTypes.Name);
+        var role = User.FindFirstValue(ClaimTypes.Role);
+        var supplierId = User.FindFirstValue("SupplierId");
+        var supplierCode = User.FindFirstValue("SupplierCode");
+        var employeeCode = User.FindFirstValue("EmployeeCode");
+        
+        return Ok(new {
+            Username = username,
+            Role = role,
+            SupplierId = supplierId,
+            SupplierCode = supplierCode,
+            EmployeeCode = employeeCode
+        });
     }
 }

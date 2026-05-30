@@ -7,7 +7,7 @@ using StockSenseAI.Services;
 
 namespace StockSenseAI.Api.Controllers;
 
-// [Authorize] // Commented out for demo - allow anonymous access
+[Authorize]
 [ApiController]
 [Route("api/[controller]")]
 public class ProductsController : ControllerBase

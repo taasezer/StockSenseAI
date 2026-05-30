@@ -45,6 +45,9 @@ builder.Services.AddScoped<IAIInsightsService, AIInsightsService>();
 builder.Services.AddScoped<IWarehouseService, WarehouseService>();
 builder.Services.AddScoped<IBarcodeService, BarcodeService>();
 builder.Services.AddScoped<IIntegrationService, IntegrationService>();
+builder.Services.AddScoped<ITaskService, TaskService>();
+builder.Services.AddHttpContextAccessor();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddAutoMapper(typeof(Program).Assembly);
 builder.Services.AddHttpClient();
 

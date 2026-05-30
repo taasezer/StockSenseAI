@@ -1,270 +1,183 @@
 import { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
+import { useLanguage } from '../contexts/LanguageContext'
 
 const Register = () => {
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
+  const [isEmployee, setIsEmployee] = useState(false)
+  const [supplierCode, setSupplierCode] = useState('')
+  
   const [error, setError] = useState('')
-  const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [success, setSuccess] = useState(false)
   const navigate = useNavigate()
+  const { t, language, setLanguage } = useLanguage()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError('')
-    setLoading(true)
 
-    // Client-side validation
     if (password !== confirmPassword) {
       setError('Passwords do not match')
-      setLoading(false)
       return
     }
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters')
-      setLoading(false)
-      return
-    }
-
-    if (username.length < 3) {
-      setError('Username must be at least 3 characters')
-      setLoading(false)
-      return
-    }
+    setLoading(true)
 
     try {
-      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:5000'
-      console.log('Attempting to register at:', `${apiUrl}/api/auth/register`)
-
-      // Call backend API
-      const response = await fetch(`${apiUrl}/api/auth/register`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      })
-
-      console.log('Response status:', response.status)
-
-      if (!response.ok) {
-        const contentType = response.headers.get('content-type')
-        let errorMessage = 'Registration failed'
-
-        if (contentType && contentType.includes('application/json')) {
-          const errorData = await response.json()
-          errorMessage = errorData.message || errorData.title || 'Registration failed'
-        } else {
-          errorMessage = await response.text()
-        }
-
-        throw new Error(errorMessage)
+      const payload: any = {
+        username,
+        password,
+        role: isEmployee ? 'Employee' : 'Supplier'
       }
 
-      // Success!
+      if (isEmployee) {
+        if (!supplierCode.trim()) {
+          throw new Error('Supplier code is required for employees')
+        }
+        payload.supplierCode = supplierCode.trim()
+      }
+
+      const response = await fetch(`${import.meta.env.VITE_API_URL}/api/auth/register`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Registration failed' }))
+        throw new Error(errorData.message || 'Registration failed')
+      }
+
       setSuccess(true)
       setTimeout(() => navigate('/login'), 2000)
     } catch (err: any) {
-      console.error('Registration error:', err)
-
-      // Daha detaylı error mesajı
-      if (err.message === 'Failed to fetch') {
-        setError('Cannot connect to server. Please make sure backend is running on http://localhost:5000')
-      } else if (err.message.includes('NetworkError') || err.message.includes('CORS')) {
-        setError('Network error. Check CORS settings or backend connection.')
-      } else {
-        setError(err.message || 'Registration failed. Username may already exist.')
-      }
+      setError(err.message || 'Registration failed')
     } finally {
       setLoading(false)
     }
   }
 
   return (
-    <div style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      minHeight: '100vh',
-      backgroundColor: '#f0f0f0'
-    }}>
-      <div style={{
-        backgroundColor: 'white',
-        padding: '40px',
-        borderRadius: '8px',
-        boxShadow: '0 2px 10px rgba(0,0,0,0.1)',
-        width: '100%',
-        maxWidth: '400px'
-      }}>
-        <h1 style={{
-          fontSize: '28px',
-          fontWeight: 'bold',
-          marginBottom: '24px',
-          textAlign: 'center',
-          color: '#333'
-        }}>
-          Create Account
-        </h1>
+    <div className="auth-container">
+      <div style={{ position: 'absolute', top: 20, right: 20 }}>
+        <select 
+            className="lang-select" 
+            value={language} 
+            onChange={(e) => setLanguage(e.target.value as any)}
+        >
+            <option value="en">EN</option>
+            <option value="tr">TR</option>
+            <option value="fr">FR</option>
+            <option value="es">ES</option>
+        </select>
+      </div>
+
+      <div className="auth-box">
+        <div className="auth-logo">
+          <h1>StockSense<span>AI</span></h1>
+          <p className="auth-subtitle">Initialize New Identity</p>
+        </div>
 
         {error && (
-          <div style={{
-            padding: '12px',
-            marginBottom: '16px',
-            backgroundColor: '#fee',
-            border: '1px solid #fcc',
-            borderRadius: '4px',
-            color: '#c33',
-            fontSize: '13px',
-            lineHeight: '1.4'
-          }}>
+          <div style={{ color: '#ef4444', fontSize: '14px', marginBottom: '16px', textAlign: 'center' }}>
             {error}
           </div>
         )}
-
+        
         {success && (
-          <div style={{
-            padding: '12px',
-            marginBottom: '16px',
-            backgroundColor: '#efe',
-            border: '1px solid #cfc',
-            borderRadius: '4px',
-            color: '#3c3',
-            textAlign: 'center'
-          }}>
-            ✓ Registration successful! Redirecting to login...
-          </div>
+           <div style={{ color: '#10b981', fontSize: '14px', marginBottom: '16px', textAlign: 'center' }}>
+             Registration successful. Redirecting...
+           </div>
         )}
 
-        <form onSubmit={handleSubmit}>
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '8px',
-              color: '#555',
-              fontWeight: '500'
-            }}>
-              Username
-            </label>
+        <form onSubmit={handleSubmit} className="auth-form">
+          <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', backgroundColor: 'var(--bg-dark)', padding: '4px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
+            <button
+                type="button"
+                onClick={() => setIsEmployee(false)}
+                style={{
+                    flex: 1,
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: !isEmployee ? 'var(--bg-panel-hover)' : 'transparent',
+                    color: !isEmployee ? '#fff' : 'var(--text-muted)',
+                    fontWeight: !isEmployee ? '600' : '400',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                }}
+            >
+                Supplier / Company
+            </button>
+            <button
+                type="button"
+                onClick={() => setIsEmployee(true)}
+                style={{
+                    flex: 1,
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    backgroundColor: isEmployee ? 'var(--bg-panel-hover)' : 'transparent',
+                    color: isEmployee ? '#fff' : 'var(--text-muted)',
+                    fontWeight: isEmployee ? '600' : '400',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s'
+                }}
+            >
+                Employee
+            </button>
+          </div>
+
+          <input
+            type="text"
+            required minLength={3} disabled={loading || success}
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            className="input-field"
+            placeholder={t('login.username')}
+          />
+
+          <input
+            type="password"
+            required minLength={6} disabled={loading || success}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            className="input-field"
+            placeholder={t('login.password')}
+          />
+
+          <input
+            type="password"
+            required minLength={6} disabled={loading || success}
+            value={confirmPassword}
+            onChange={(e) => setConfirmPassword(e.target.value)}
+            className="input-field"
+            placeholder={t('register.confirm_password')}
+          />
+
+          {isEmployee && (
             <input
               type="text"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px',
-                boxSizing: 'border-box'
-              }}
-              placeholder="Choose a username (min 3 characters)"
-              required
-              minLength={3}
-              disabled={loading || success}
+              required={isEmployee} disabled={loading || success}
+              value={supplierCode}
+              onChange={(e) => setSupplierCode(e.target.value)}
+              className="input-field"
+              placeholder={t('register.supplier_code')}
+              style={{ borderColor: 'var(--brand-red)' }}
             />
-          </div>
+          )}
 
-          <div style={{ marginBottom: '16px' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '8px',
-              color: '#555',
-              fontWeight: '500'
-            }}>
-              Password
-            </label>
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px',
-                boxSizing: 'border-box'
-              }}
-              placeholder="Choose a password (min 6 characters)"
-              required
-              minLength={6}
-              disabled={loading || success}
-            />
-          </div>
-
-          <div style={{ marginBottom: '24px' }}>
-            <label style={{
-              display: 'block',
-              marginBottom: '8px',
-              color: '#555',
-              fontWeight: '500'
-            }}>
-              Confirm Password
-            </label>
-            <input
-              type="password"
-              value={confirmPassword}
-              onChange={(e) => setConfirmPassword(e.target.value)}
-              style={{
-                width: '100%',
-                padding: '10px 12px',
-                border: '1px solid #ddd',
-                borderRadius: '4px',
-                fontSize: '14px',
-                boxSizing: 'border-box'
-              }}
-              placeholder="Re-enter your password"
-              required
-              minLength={6}
-              disabled={loading || success}
-            />
-          </div>
-
-          <button
-            type="submit"
-            disabled={loading || success}
-            style={{
-              width: '100%',
-              padding: '12px',
-              backgroundColor: (loading || success) ? '#999' : '#10B981',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              fontSize: '16px',
-              fontWeight: '600',
-              cursor: (loading || success) ? 'not-allowed' : 'pointer',
-              transition: 'background-color 0.2s'
-            }}
-          >
-            {loading ? 'Creating Account...' : success ? 'Success!' : 'Register'}
+          <button type="submit" disabled={loading || success} className="btn-primary" style={{ marginTop: '8px' }}>
+            {loading ? <div className="spinner"></div> : (isEmployee ? 'Join Organization' : 'Create Organization')}
           </button>
         </form>
 
-        <div style={{
-          marginTop: '16px',
-          textAlign: 'center',
-          fontSize: '14px',
-          color: '#666'
-        }}>
-          Already have an account?{' '}
-          <a href="/login" style={{ color: '#4F46E5', textDecoration: 'none', fontWeight: '500' }}>
-            Login here
-          </a>
-        </div>
-
-        {/* Debug info */}
-        <div style={{
-          marginTop: '20px',
-          padding: '12px',
-          backgroundColor: '#f9fafb',
-          border: '1px solid #e5e7eb',
-          borderRadius: '4px',
-          fontSize: '12px',
-          color: '#666'
-        }}>
-          <strong>Backend URL:</strong> {import.meta.env.VITE_API_URL || 'http://localhost:5000'}
+        <div className="auth-links">
+          <span>Already have an account?</span>
+          <a href="/login">Log in here</a>
         </div>
       </div>
     </div>

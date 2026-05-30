@@ -1,12 +1,17 @@
 using Microsoft.EntityFrameworkCore;
 using StockSenseAI.Core.Entities;
-using BCrypt.Net;
+using StockSenseAI.Core.Interfaces;
 
 namespace StockSenseAI.Infrastructure
 {
     public class AppDbContext : DbContext
     {
-        public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
+        private readonly ICurrentUserService? _currentUserService;
+
+        public AppDbContext(DbContextOptions<AppDbContext> options, ICurrentUserService? currentUserService = null) : base(options) 
+        { 
+            _currentUserService = currentUserService;
+        }
 
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<SalesHistory> SalesHistories { get; set; } = null!;
@@ -22,6 +27,7 @@ namespace StockSenseAI.Infrastructure
         public DbSet<WebhookLog> WebhookLogs { get; set; } = null!;
         public DbSet<ExternalOrder> ExternalOrders { get; set; } = null!;
         public DbSet<ExternalOrderItem> ExternalOrderItems { get; set; } = null!;
+        public DbSet<EmployeeTask> EmployeeTasks { get; set; } = null!;
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
@@ -84,85 +90,58 @@ namespace StockSenseAI.Infrastructure
                 .WithMany()
                 .HasForeignKey(st => st.ProductId);
             
+            // EmployeeTask relationships
+            modelBuilder.Entity<EmployeeTask>()
+                .HasOne(et => et.AssignedUser)
+                .WithMany()
+                .HasForeignKey(et => et.AssignedUserId)
+                .OnDelete(DeleteBehavior.SetNull);
+
+            modelBuilder.Entity<EmployeeTask>()
+                .HasOne(et => et.Supplier)
+                .WithMany()
+                .HasForeignKey(et => et.SupplierId)
+                .OnDelete(DeleteBehavior.Cascade);
+
+            modelBuilder.Entity<EmployeeTask>()
+                .HasOne(et => et.Shipment)
+                .WithMany()
+                .HasForeignKey(et => et.ShipmentId)
+                .OnDelete(DeleteBehavior.SetNull);
+
             // Ignore computed property
             modelBuilder.Entity<Product>()
                 .Ignore(p => p.IsLowStock);
 
-            // 🔒 Seed data – başlangıç kullanıcıları
-            modelBuilder.Entity<User>().HasData(
-                new User
-                {
-                    Id = 1,
-                    Username = "admin",
-                    PasswordHash = "$2a$11$N9qo8uLOickgx2ZMRZo5e.PY/f7u8o7F3N0YQzGpJ4o4n8iQ4nFZm",
-                    Role = "Admin"
-                },
-                new User
-                {
-                    Id = 2,
-                    Username = "user",
-                    PasswordHash = "$2a$11$hD4C2oSP5y9X1R4zvYbI3OMHqV5YDhx8h8M5sL.8OznYhpRqwrhG2",
-                    Role = "User"
-                }
-            );
-            
-            // 🏭 Supplier seed data
-            modelBuilder.Entity<Supplier>().HasData(
-                new Supplier
-                {
-                    Id = 1,
-                    Name = "TechSupply Co.",
-                    ContactEmail = "orders@techsupply.com",
-                    ContactPhone = "+90 555 123 4567",
-                    AverageLeadTimeDays = 5,
-                    IsActive = true
-                }
-            );
-
-            // 📦 Product seed data with new fields
-            modelBuilder.Entity<Product>().HasData(
-                new Product
-                {
-                    Id = 1,
-                    Name = "Wireless Headphones",
-                    Sku = "WH-001",
-                    Price = 99.99m,
-                    Category = "Electronics",
-                    StockCount = 50,
-                    ReorderLevel = 15,
-                    LeadTimeDays = 5,
-                    SupplierId = 1,
-                    Description = "High-quality wireless headphones with noise cancellation."
-                },
-                new Product
-                {
-                    Id = 2,
-                    Name = "Smart Watch",
-                    Sku = "SW-001",
-                    Price = 199.99m,
-                    Category = "Electronics",
-                    StockCount = 8, // Low stock for demo
-                    ReorderLevel = 10,
-                    LeadTimeDays = 7,
-                    SupplierId = 1,
-                    Description = "Fitness tracking and smart notifications on your wrist."
-                },
-                new Product
-                {
-                    Id = 3,
-                    Name = "USB-C Hub",
-                    Sku = "USB-001",
-                    Price = 49.99m,
-                    Category = "Accessories",
-                    StockCount = 0, // Out of stock for demo
-                    ReorderLevel = 20,
-                    LeadTimeDays = 3,
-                    SupplierId = 1,
-                    Description = "7-in-1 USB-C hub with HDMI, USB-A, and SD card slots."
-                }
-            );
+            // GLOBAL QUERY FILTERS - Data Isolation
+            var supplierId = _currentUserService?.SupplierId ?? 0;
+            // Apply only if supplierId > 0 (e.g. not called by background seed/admin bypass)
+            if (supplierId > 0)
+            {
+                modelBuilder.Entity<Product>().HasQueryFilter(p => p.SupplierId == supplierId);
+                modelBuilder.Entity<Warehouse>().HasQueryFilter(w => w.SupplierId == supplierId);
+                modelBuilder.Entity<Shipment>().HasQueryFilter(s => s.SupplierId == supplierId);
+                modelBuilder.Entity<EmployeeTask>().HasQueryFilter(e => e.SupplierId == supplierId);
+            }
 
             base.OnModelCreating(modelBuilder);
+        }
+
+        public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
+        {
+            var supplierId = _currentUserService?.SupplierId ?? 0;
+            if (supplierId > 0)
+            {
+                foreach (var entry in ChangeTracker.Entries().Where(e => e.State == EntityState.Added))
+                {
+                    var property = entry.Entity.GetType().GetProperty("SupplierId");
+                    if (property != null && (int)(property.GetValue(entry.Entity) ?? 0) == 0)
+                    {
+                        property.SetValue(entry.Entity, supplierId);
+                    }
+                }
+            }
+            return base.SaveChangesAsync(cancellationToken);
         }
     }
 }

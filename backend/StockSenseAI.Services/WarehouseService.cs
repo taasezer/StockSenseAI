@@ -9,10 +9,12 @@ namespace StockSenseAI.Services;
 public class WarehouseService : IWarehouseService
 {
     private readonly AppDbContext _context;
+    private readonly ICurrentUserService _currentUserService;
 
-    public WarehouseService(AppDbContext context)
+    public WarehouseService(AppDbContext context, ICurrentUserService currentUserService)
     {
         _context = context;
+        _currentUserService = currentUserService;
     }
 
     #region Warehouse CRUD
@@ -47,7 +49,8 @@ public class WarehouseService : IWarehouseService
             ContactPhone = dto.ContactPhone,
             ManagerName = dto.ManagerName,
             IsActive = dto.IsActive,
-            IsPrimary = dto.IsPrimary
+            IsPrimary = dto.IsPrimary,
+            SupplierId = _currentUserService.SupplierId
         };
 
         // If this is primary, unset other primaries
