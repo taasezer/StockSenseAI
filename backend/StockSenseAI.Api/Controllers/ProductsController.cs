@@ -85,38 +85,34 @@ public class ProductsController : ControllerBase
     {
         if (file == null || file.Length == 0) return BadRequest("No file uploaded");
 
-        var uploadsPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
-        if (!Directory.Exists(uploadsPath))
-            Directory.CreateDirectory(uploadsPath);
-
-        var extension = Path.GetExtension(file.FileName);
-        var newFileName = $"product_{id}_{Guid.NewGuid()}{extension}";
-        var filePath = Path.Combine(uploadsPath, newFileName);
-
-        using (var stream = new FileStream(filePath, FileMode.Create))
-        {
-            await file.CopyToAsync(stream);
-        }
-
         var product = await _productService.GetByIdAsync(id);
         if (product == null) return NotFound();
 
-        var productDto = new ProductDto
+        using (var memoryStream = new MemoryStream())
         {
-            Name = product.Name,
-            Price = product.Price,
-            Category = product.Category,
-            StockCount = product.StockCount,
-            ReorderLevel = product.ReorderLevel,
-            LeadTimeDays = product.LeadTimeDays,
-            SupplierId = product.SupplierId,
-            Description = product.Description,
-            ImageUrl = $"/uploads/{newFileName}"
-        };
+            await file.CopyToAsync(memoryStream);
+            var fileBytes = memoryStream.ToArray();
+            var base64String = Convert.ToBase64String(fileBytes);
+            var mimeType = file.ContentType;
+            var dataUrl = $"data:{mimeType};base64,{base64String}";
 
-        var updatedProduct = await _productService.UpdateAsync(id, productDto);
+            var productDto = new ProductDto
+            {
+                Name = product.Name,
+                Sku = product.Sku,
+                Price = product.Price,
+                Category = product.Category,
+                StockCount = product.StockCount,
+                ReorderLevel = product.ReorderLevel,
+                LeadTimeDays = product.LeadTimeDays,
+                SupplierId = product.SupplierId,
+                Description = product.Description,
+                ImageUrl = dataUrl // Save directly to database
+            };
 
-        await _hubContext.Clients.All.SendAsync("ReceiveProductUpdate", updatedProduct);
-        return Ok(updatedProduct);
+            var updatedProduct = await _productService.UpdateAsync(id, productDto);
+            await _hubContext.Clients.All.SendAsync("ReceiveProductUpdate", updatedProduct);
+            return Ok(updatedProduct);
+        }
     }
 }

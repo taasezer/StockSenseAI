@@ -13,6 +13,8 @@ namespace StockSenseAI.Infrastructure
             _currentUserService = currentUserService;
         }
 
+        public int CurrentSupplierId => _currentUserService?.SupplierId ?? 0;
+
         public DbSet<Product> Products { get; set; } = null!;
         public DbSet<SalesHistory> SalesHistories { get; set; } = null!;
         public DbSet<User> Users { get; set; } = null!;
@@ -134,16 +136,12 @@ namespace StockSenseAI.Infrastructure
                 .HasForeignKey(m => m.SenderUserId)
                 .OnDelete(DeleteBehavior.Restrict);
 
-            // GLOBAL QUERY FILTERS - Data Isolation
-            var supplierId = _currentUserService?.SupplierId ?? 0;
-            // Apply only if supplierId > 0 (e.g. not called by background seed/admin bypass)
-            if (supplierId > 0)
-            {
-                modelBuilder.Entity<Product>().HasQueryFilter(p => p.SupplierId == supplierId);
-                modelBuilder.Entity<Warehouse>().HasQueryFilter(w => w.SupplierId == supplierId);
-                modelBuilder.Entity<Shipment>().HasQueryFilter(s => s.SupplierId == supplierId);
-                modelBuilder.Entity<EmployeeTask>().HasQueryFilter(e => e.SupplierId == supplierId);
-            }
+            // GLOBAL QUERY FILTERS - Data Isolation (Evaluated at query time)
+            modelBuilder.Entity<Supplier>().HasQueryFilter(s => CurrentSupplierId == 0 || s.Id == CurrentSupplierId);
+            modelBuilder.Entity<Product>().HasQueryFilter(p => CurrentSupplierId == 0 || p.SupplierId == CurrentSupplierId);
+            modelBuilder.Entity<Warehouse>().HasQueryFilter(w => CurrentSupplierId == 0 || w.SupplierId == CurrentSupplierId);
+            modelBuilder.Entity<Shipment>().HasQueryFilter(s => CurrentSupplierId == 0 || s.SupplierId == CurrentSupplierId);
+            modelBuilder.Entity<EmployeeTask>().HasQueryFilter(e => CurrentSupplierId == 0 || e.SupplierId == CurrentSupplierId);
 
             base.OnModelCreating(modelBuilder);
         }

@@ -5,6 +5,7 @@ import { productHubConnection } from '../services/api'
 interface Product {
   id: number
   name: string
+  sku: string
   price: number
   category: string
   stockCount: number
@@ -275,6 +276,7 @@ const Products = () => {
               <tr style={{ backgroundColor: 'var(--bg-dark)', borderBottom: '1px solid var(--border-color)' }}>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Image</th>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>ID</th>
+                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Code</th>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Name</th>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Price</th>
                 <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Category</th>
@@ -297,6 +299,7 @@ const Products = () => {
                     )}
                   </td>
                   <td style={{ padding: '16px', color: 'var(--text-muted)' }}>#{product.id}</td>
+                  <td style={{ padding: '16px', color: 'var(--brand-red)', fontWeight: 'bold' }}>{product.sku || 'N/A'}</td>
                   <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: '500' }}>{product.name}</td>
                   <td style={{ padding: '16px', color: '#10b981', fontWeight: '600' }}>
                     ${product.price?.toFixed(2) || '0.00'}

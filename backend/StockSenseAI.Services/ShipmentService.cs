@@ -72,6 +72,8 @@ public class ShipmentService : IShipmentService
             DestinationAddress = dto.DestinationAddress,
             TrackingNumber = trackingNumber,
             Notes = dto.Notes,
+            ExternalSupplierName = dto.ExternalSupplierName,
+            ExternalSupplierCode = dto.ExternalSupplierCode,
             Status = ShipmentStatus.Pending
         };
 
@@ -170,6 +172,8 @@ public class ShipmentService : IShipmentService
             DestinationCity = shipment.DestinationCity,
             DestinationAddress = shipment.DestinationAddress,
             Notes = shipment.Notes,
+            ExternalSupplierName = shipment.ExternalSupplierName,
+            ExternalSupplierCode = shipment.ExternalSupplierCode,
             CreatedAt = shipment.CreatedAt
         };
     }

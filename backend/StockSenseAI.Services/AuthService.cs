@@ -64,6 +64,18 @@ public class AuthService : IAuthService
             await _context.Suppliers.AddAsync(newSupplier);
             await _context.SaveChangesAsync(); // Get Supplier ID
 
+            var newWarehouse = new Warehouse
+            {
+                Name = "Merkez Depo",
+                Code = "WH-01",
+                Address = address,
+                SupplierId = newSupplier.Id,
+                IsPrimary = true,
+                IsActive = true
+            };
+            await _context.Warehouses.AddAsync(newWarehouse);
+            await _context.SaveChangesAsync();
+
             user.SupplierId = newSupplier.Id;
             user.Role = "Supplier";
         }

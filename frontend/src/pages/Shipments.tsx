@@ -6,12 +6,14 @@ interface Shipment {
   supplierName: string
   quantity: number
   expectedArrival: string
-  trackingNumber: string
+  trackingNumber: string | null
   status: string
   originLocation: string
   destinationCountryCode: string
   destinationRegionCode: string
   destinationCity: string
+  externalSupplierName?: string | null
+  externalSupplierCode?: string | null
 }
 
 const Shipments = () => {
@@ -28,7 +30,9 @@ const Shipments = () => {
     destinationRegionCode: '01',
     destinationCity: '',
     destinationAddress: '',
-    trackingNumber: ''
+    trackingNumber: '',
+    externalSupplierName: '',
+    externalSupplierCode: ''
   })
 
   useEffect(() => {
@@ -63,7 +67,7 @@ const Shipments = () => {
       const payload = {
         ...newShipment,
         productId: parseInt(newShipment.productId),
-        supplierId: parseInt(localStorage.getItem('supplierId') || '1') // Ideally fetched dynamically, but backend uses JWT supplier context
+        supplierId: 0 // Let backend context handle it securely
       }
       const res = await fetch(`${import.meta.env.VITE_API_URL}/api/shipments`, {
         method: 'POST',
@@ -103,6 +107,8 @@ const Shipments = () => {
               <tr style={{ backgroundColor: 'var(--bg-dark)', borderBottom: '1px solid var(--border-color)', fontSize: '12px' }}>
                 <th style={{ padding: '12px 16px' }}>Tracking #</th>
                 <th style={{ padding: '12px 16px' }}>Product</th>
+                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Sender / Supplier</th>
+                <th style={{ padding: '16px', fontWeight: '600', color: 'var(--text-muted)' }}>Quantity</th>
                 <th style={{ padding: '12px 16px' }}>Route</th>
                 <th style={{ padding: '12px 16px' }}>Expected</th>
                 <th style={{ padding: '12px 16px' }}>Status</th>
@@ -116,7 +122,7 @@ const Shipments = () => {
                       style={{ fontWeight: 'bold', fontFamily: 'monospace', color: 'var(--brand-red)', cursor: 'pointer' }}
                       title="Click to copy tracking number"
                       onClick={() => {
-                        navigator.clipboard.writeText(s.trackingNumber);
+                        navigator.clipboard.writeText(s.trackingNumber || '');
                         alert(`Tracking number ${s.trackingNumber} copied to clipboard!`);
                       }}
                     >
@@ -125,7 +131,13 @@ const Shipments = () => {
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ color: '#fff' }}>{s.productName}</div>
-                    <div style={{ fontSize: '12px', color: 'var(--text-muted)' }}>{s.quantity} units</div>
+                  </td>
+                  <td style={{ padding: '16px' }}>
+                    <div style={{ fontWeight: '500' }}>{s.externalSupplierName || s.supplierName || 'System'}</div>
+                    {(s.externalSupplierCode) && <div style={{ fontSize: '12px', color: 'var(--brand-red)', fontFamily: 'monospace' }}>{s.externalSupplierCode}</div>}
+                  </td>
+                  <td style={{ padding: '16px', color: 'var(--text-primary)', fontWeight: '600' }}>
+                    +{s.quantity}
                   </td>
                   <td style={{ padding: '12px 16px' }}>
                     <div style={{ fontSize: '12px', color: '#fff' }}>{s.originLocation || 'Unknown'} ➔ {s.destinationCity || 'HQ'}</div>
@@ -194,6 +206,17 @@ const Shipments = () => {
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Region/City Code</label>
                   <input required type="text" placeholder="01" maxLength={3} className="input-field" value={newShipment.destinationRegionCode} onChange={e => setNewShipment({...newShipment, destinationRegionCode: e.target.value})} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Sender Supplier Name (External)</label>
+                  <input type="text" className="input-field" value={newShipment.externalSupplierName} onChange={e => setNewShipment({...newShipment, externalSupplierName: e.target.value})} placeholder="If not in system..." />
+                </div>
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', color: 'var(--text-muted)' }}>Sender Supplier Code (External)</label>
+                  <input type="text" className="input-field" value={newShipment.externalSupplierCode} onChange={e => setNewShipment({...newShipment, externalSupplierCode: e.target.value})} placeholder="Optional tracking code" />
                 </div>
               </div>
 

@@ -21,6 +21,10 @@ public class Shipment
     public string? DestinationAddress { get; set; }
     public string? Notes { get; set; }
     
+    // External Supplier Tracking (Sender/Receiver outside the system)
+    public string? ExternalSupplierName { get; set; }
+    public string? ExternalSupplierCode { get; set; }
+    
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
     public DateTime? UpdatedAt { get; set; }
 }

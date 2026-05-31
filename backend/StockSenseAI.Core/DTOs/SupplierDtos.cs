@@ -38,6 +38,8 @@ public class ShipmentDto
     public string? DestinationCity { get; set; }
     public string? DestinationAddress { get; set; }
     public string? Notes { get; set; }
+    public string? ExternalSupplierName { get; set; }
+    public string? ExternalSupplierCode { get; set; }
 }
 
 public class ShipmentResponseDto
@@ -58,5 +60,7 @@ public class ShipmentResponseDto
     public string? DestinationCity { get; set; }
     public string? DestinationAddress { get; set; }
     public string? Notes { get; set; }
+    public string? ExternalSupplierName { get; set; }
+    public string? ExternalSupplierCode { get; set; }
     public DateTime CreatedAt { get; set; }
 }

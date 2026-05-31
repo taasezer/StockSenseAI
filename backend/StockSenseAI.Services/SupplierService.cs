@@ -18,6 +18,7 @@ public class SupplierService : ISupplierService
     public async Task<IEnumerable<SupplierResponseDto>> GetAllAsync()
     {
         var suppliers = await _context.Suppliers
+            .IgnoreQueryFilters()
             .Include(s => s.Products)
             .ToListAsync();
 
@@ -27,6 +28,7 @@ public class SupplierService : ISupplierService
     public async Task<SupplierResponseDto?> GetByIdAsync(int id)
     {
         var supplier = await _context.Suppliers
+            .IgnoreQueryFilters()
             .Include(s => s.Products)
             .FirstOrDefaultAsync(s => s.Id == id);
 
